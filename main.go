@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"LindaBen_Phase_1_Project/internal/db"
+	"LindaBen_Phase_1_Project/internal/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -42,4 +43,19 @@ func main() {
 		port = "8080"
 	}
 	r.Run(":" + port)
+}
+
+func seedData() {
+	var roles = []models.Role{{RoleName: "admin", Description: "Administrator role"}, {RoleName: "customer", Description: "Authenticated customer role"}, {RoleName: "anonymous", Description: "Unauthenticated customer role"}}
+	var user = []models.User{{Name: os.Getenv("ADMIN_NAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), RoleID: 1}}
+	db.Db.Save(&roles)
+	db.Db.Save(&user)
+}
+
+// run migration
+func loadDatabase() {
+	db.InitDb()
+	db.Db.AutoMigrate(&models.Role{})
+	db.Db.AutoMigrate(&models.User{})
+	seedData()
 }

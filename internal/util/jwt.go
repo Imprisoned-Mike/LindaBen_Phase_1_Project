@@ -24,7 +24,7 @@ func GenerateJWT(user models.User) (string, error) {
 		"id":   user.ID,
 		"role": user.RoleID,
 		"iat":  time.Now().Unix(),
-		"eat":  time.Now().Add(time.Second * time.Duration(tokenTTL)).Unix(),
+		"exp":  time.Now().Add(time.Second * time.Duration(tokenTTL)).Unix(),
 	})
 	return token.SignedString(privateKey)
 }
@@ -64,7 +64,7 @@ func ValidateCustomerRoleJWT(context *gin.Context) error {
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
 	userRole := uint(claims["role"].(float64))
-	if ok && token.Valid && userRole == 2 || userRole == 1 {
+	if ok && token.Valid && (userRole == 2 || userRole == 1) {
 		return nil
 	}
 	return errors.New("invalid author token provided")
