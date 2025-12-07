@@ -3,8 +3,9 @@ package models
 import (
 	"time"
 
-	"gorm.io/gorm"
 	"LindaBen_Phase_1_Project/internal/db"
+
+	"gorm.io/gorm"
 )
 
 // Delivery model
@@ -24,9 +25,8 @@ type Delivery struct {
 	SchoolID *uint
 	School   *School `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET SET NULL;"`
 
-	// Belongs-to: Vendor
-	VendorID *uint
-	Vendor   *Vendor `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	// One-to-many
+	Vendor []Vendor `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // Get all Deliveries
