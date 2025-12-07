@@ -16,7 +16,10 @@ type User struct {
 	Password string
 	Email    string `gorm:"unique"`
 	Phone    string
-	RoleID   uint // e.g. "# which then corresponds to a role"
+	
+	RoleID   uint
+	UserRole *Role `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to Role
+
 
 	AvatarID *uint
 	Avatar   *File `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
