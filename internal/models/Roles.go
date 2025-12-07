@@ -9,12 +9,13 @@ import (
 type Role struct {
 	gorm.Model
 	RoleName    string       `gorm:"uniqueIndex"`
+	Description string       `json:"description"`
 	Permissions []Permission `gorm:"many2many:role_permissions;"`
 }
 
 // Create a role
 func CreateRole(Role *Role) (err error) {
-	err = db.Create(Role).Error
+	err = db.Db.Create(Role).Error
 	if err != nil {
 		return err
 	}
@@ -23,7 +24,7 @@ func CreateRole(Role *Role) (err error) {
 
 // Get all roles
 func GetRoles(Role *[]Role) (err error) {
-	err = db.Find(Role).Error
+	err = db.Db.Find(Role).Error
 	if err != nil {
 		return err
 	}
@@ -32,7 +33,7 @@ func GetRoles(Role *[]Role) (err error) {
 
 // Get role by id
 func GetRole(Role *Role, id int) (err error) {
-	err = db.Where("id = ?", id).First(Role).Error
+	err = db.Db.Where("id = ?", id).First(Role).Error
 	if err != nil {
 		return err
 	}
@@ -41,6 +42,6 @@ func GetRole(Role *Role, id int) (err error) {
 
 // Update role
 func UpdateRole(Role *Role) (err error) {
-	db.Save(Role)
+	db.Db.Save(Role)
 	return nil
 }

@@ -16,7 +16,7 @@ type User struct {
 	Password string
 	Email    string `gorm:"unique"`
 	Phone    string
-	Role     string // e.g. "admin", "school_admin:34", "vendor_admin:12"
+	RoleID   uint // e.g. "# which then corresponds to a role"
 
 	AvatarID *uint
 	Avatar   *File `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
@@ -24,7 +24,7 @@ type User struct {
 
 // Save user details
 func (user *User) Save() (*User, error) {
-	err := db.Create(&user).Error
+	err := db.Db.Create(&user).Error
 	if err != nil {
 		return &User{}, err
 	}
@@ -38,23 +38,23 @@ func (user *User) BeforeSave(*gorm.DB) error {
 		return err
 	}
 	user.Password = string(passwordHash)
-	user.Username = html.EscapeString(strings.TrimSpace(user.Username))
+	user.Name = html.EscapeString(strings.TrimSpace(user.Name))
 	return nil
 }
 
 // Get all users
 func GetUsers(User *[]User) (err error) {
-	err = database.Db.Find(User).Error
+	err = db.Db.Find(User).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// Get user by username
-func GetUserByUsername(username string) (User, error) {
+// Get user by name
+func GetUserByName(name string) (User, error) {
 	var user User
-	err := database.Db.Where("username=?", username).Find(&user).Error
+	err := db.Db.Where("name=?", name).Find(&user).Error
 	if err != nil {
 		return User{}, err
 	}
@@ -69,7 +69,7 @@ func (user *User) ValidateUserPassword(password string) error {
 // Get user by id
 func GetUserById(id uint) (User, error) {
 	var user User
-	err := database.Db.Where("id=?", id).Find(&user).Error
+	err := db.Db.Where("id=?", id).Find(&user).Error
 	if err != nil {
 		return User{}, err
 	}
@@ -78,7 +78,7 @@ func GetUserById(id uint) (User, error) {
 
 // Get user by id
 func GetUser(User *User, id int) (err error) {
-	err = database.Db.Where("id = ?", id).First(User).Error
+	err = db.Db.Where("id = ?", id).First(User).Error
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func GetUser(User *User, id int) (err error) {
 
 // Update user
 func UpdateUser(User *User) (err error) {
-	err = database.Db.Omit("password").Updates(User).Error
+	err = db.Db.Omit("password").Updates(User).Error
 	if err != nil {
 		return err
 	}
