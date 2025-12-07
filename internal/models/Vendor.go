@@ -10,9 +10,11 @@ type Vendor struct {
 	gorm.Model // includes ID, CreatedAt, UpdatedAt, DeletedAt
 	Name       string
 	Address    string
-	Location   float64 // e.g. GPS coordinates
+	Lat        float64
+	Lon        float64
 
-	Type string // "produce", "shelf_stable", "packaging"
+	Type      string // "produce", "shelf_stable", "packaging"
+	DeliveryID uint
 }
 
 // Get all Vendors

@@ -10,32 +10,31 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type User struct {
+type Users struct {
 	gorm.Model
 	Name     string
 	Password string
 	Email    string `gorm:"unique"`
 	Phone    string
-	
+
 	RoleID   uint
 	UserRole *Role `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to Role
-
 
 	AvatarID *uint
 	Avatar   *File `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // Save user details
-func (user *User) Save() (*User, error) {
+func (user *Users) Save() (*Users, error) {
 	err := db.Db.Create(&user).Error
 	if err != nil {
-		return &User{}, err
+		return &Users{}, err
 	}
 	return user, nil
 }
 
 // Generate encrypted password
-func (user *User) BeforeSave(*gorm.DB) error {
+func (user *Users) BeforeSave(*gorm.DB) error {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -46,8 +45,8 @@ func (user *User) BeforeSave(*gorm.DB) error {
 }
 
 // Get all users
-func GetUsers(User *[]User) (err error) {
-	err = db.Db.Find(User).Error
+func GetUsers(Users *[]Users) (err error) {
+	err = db.Db.Find(Users).Error
 	if err != nil {
 		return err
 	}
@@ -55,33 +54,33 @@ func GetUsers(User *[]User) (err error) {
 }
 
 // Get user by name
-func GetUserByName(name string) (User, error) {
-	var user User
+func GetUserByName(name string) (Users, error) {
+	var user Users
 	err := db.Db.Where("name=?", name).Find(&user).Error
 	if err != nil {
-		return User{}, err
+		return Users{}, err
 	}
 	return user, nil
 }
 
 // Validate user password
-func (user *User) ValidateUserPassword(password string) error {
+func (user *Users) ValidateUserPassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 }
 
 // Get user by id
-func GetUserById(id uint) (User, error) {
-	var user User
+func GetUserById(id uint) (Users, error) {
+	var user Users
 	err := db.Db.Where("id=?", id).Find(&user).Error
 	if err != nil {
-		return User{}, err
+		return Users{}, err
 	}
 	return user, nil
 }
 
 // Get user by id
-func GetUser(User *User, id int) (err error) {
-	err = db.Db.Where("id = ?", id).First(User).Error
+func GetUser(Users *Users, id int) (err error) {
+	err = db.Db.Where("id = ?", id).First(Users).Error
 	if err != nil {
 		return err
 	}
@@ -89,8 +88,8 @@ func GetUser(User *User, id int) (err error) {
 }
 
 // Update user
-func UpdateUser(User *User) (err error) {
-	err = db.Db.Omit("password").Updates(User).Error
+func UpdateUser(Users *Users) (err error) {
+	err = db.Db.Omit("password").Updates(Users).Error
 	if err != nil {
 		return err
 	}
