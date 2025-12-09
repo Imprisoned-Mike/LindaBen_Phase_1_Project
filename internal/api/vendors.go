@@ -1,6 +1,7 @@
 package api
 
 import (
+	"LindaBen_Phase_1_Project/internal/db"
 	"LindaBen_Phase_1_Project/internal/models"
 	"errors"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 // get all vendors
 func GetVendors(context *gin.Context) {
 	var vendor []models.Vendor
-	err := models.GetAllVendors(&vendor)
+	err := db.Db.Preload("Contact").Find(&vendor).Error
 	if err != nil {
 		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
@@ -25,7 +26,7 @@ func GetVendors(context *gin.Context) {
 func GetVendor(context *gin.Context) {
 	id, _ := strconv.Atoi(context.Param("id"))
 	var vendor models.Vendor
-	err := models.GetVendorByID(&vendor, uint(id))
+	err := db.Db.Preload("Contact").First(&vendor, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			context.AbortWithStatus(http.StatusNotFound)
