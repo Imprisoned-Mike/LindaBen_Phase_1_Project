@@ -13,8 +13,11 @@ type Vendor struct {
 	Lat        float64
 	Lon        float64
 
-	Type      string // "produce", "shelf_stable", "packaging"
+	Type       string // "produce", "shelf_stable", "packaging"
 	DeliveryID uint
+
+	ContactID *uint
+	Contact   *Users `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to User
 }
 
 // Get all Vendors
