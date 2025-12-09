@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -16,18 +15,16 @@ func main() {
 	// Load environment variables
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("No .env file found, proceeding with defaults")
 	}
 
-	// Connect to DB
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASS"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PORT"),
-	)
-	db.Connect(dsn) // your DB package would handle GORM connection
+	// Connect to SQLite DB
+	database := db.InitDb() // SQLite file is handled in db package
+	if database == nil {
+		log.Fatal("Failed to connect to database")
+	}
+
+	loadDatabase()
 
 	// Setup Gin router
 	r := gin.Default()
@@ -42,12 +39,16 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	r.Run(":" + port)
+	log.Printf("Starting server on port %s", port)
+	err = r.Run(":" + port)
+	if err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
 }
 
 func seedData() {
 	var roles = []models.Role{{RoleName: "admin", Description: "Administrator role"}, {RoleName: "customer", Description: "Authenticated customer role"}, {RoleName: "anonymous", Description: "Unauthenticated customer role"}}
-	var user = []models.User{{Name: os.Getenv("ADMIN_NAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), RoleID: 1}}
+	var user = []models.Users{{Name: os.Getenv("ADMIN_NAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), RoleID: 1}}
 	db.Db.Save(&roles)
 	db.Db.Save(&user)
 }
@@ -56,6 +57,11 @@ func seedData() {
 func loadDatabase() {
 	db.InitDb()
 	db.Db.AutoMigrate(&models.Role{})
-	db.Db.AutoMigrate(&models.User{})
+	db.Db.AutoMigrate(&models.Users{})
+	db.Db.AutoMigrate(&models.School{})
+	db.Db.AutoMigrate(&models.Vendor{})
+	db.Db.AutoMigrate(&models.Delivery{})
+	db.Db.AutoMigrate(&models.Order{})
+
 	seedData()
 }
