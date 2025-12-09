@@ -18,7 +18,7 @@ import (
 var privateKey = []byte(os.Getenv("JWT_PRIVATE_KEY"))
 
 // generate JWT token
-func GenerateJWT(user models.User) (string, error) {
+func GenerateJWT(user models.Users) (string, error) {
 	tokenTTL, _ := strconv.Atoi(os.Getenv("TOKEN_TTL"))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   user.ID,
@@ -71,10 +71,10 @@ func ValidateCustomerRoleJWT(context *gin.Context) error {
 }
 
 // fetch user details from the token
-func CurrentUser(context *gin.Context) models.User {
+func CurrentUser(context *gin.Context) models.Users {
 	err := ValidateJWT(context)
 	if err != nil {
-		return models.User{}
+		return models.Users{}
 	}
 	token, _ := getToken(context)
 	claims, _ := token.Claims.(jwt.MapClaims)
@@ -82,7 +82,7 @@ func CurrentUser(context *gin.Context) models.User {
 
 	user, err := models.GetUserById(userId)
 	if err != nil {
-		return models.User{}
+		return models.Users{}
 	}
 	return user
 }
