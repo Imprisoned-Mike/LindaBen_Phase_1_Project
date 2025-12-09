@@ -22,7 +22,7 @@ func Register(context *gin.Context) {
 		return
 	}
 
-	user := models.User{
+	user := models.Users{
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: input.Password,
@@ -77,7 +77,7 @@ func UserLogin(context *gin.Context) {
 
 // get all users
 func GetUsers(context *gin.Context) {
-	var user []models.User
+	var user []models.Users
 	err := models.GetUsers(&user)
 	if err != nil {
 		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
@@ -89,7 +89,7 @@ func GetUsers(context *gin.Context) {
 // get user by id
 func GetUser(context *gin.Context) {
 	id, _ := strconv.Atoi(context.Param("id"))
-	var user models.User
+	var user models.Users
 	err := models.GetUser(&user, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -106,7 +106,7 @@ func GetUser(context *gin.Context) {
 // update user
 func UpdateUser(c *gin.Context) {
 	//var input models.Update
-	var User models.User
+	var User models.Users
 	id, _ := strconv.Atoi(c.Param("id"))
 
 	err := models.GetUser(&User, id)
