@@ -22,6 +22,12 @@ jobs:
     - name: Clean Go build cache
       run: go clean -cache -modcache -i -r
 
+    - name: Remove old compiled files
+      run: rm -rf ./bin ./pkg
+
+    - name: Tidy modules
+      run: go mod tidy
+
     - name: Download dependencies
       run: go mod download
 
