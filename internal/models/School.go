@@ -10,8 +10,7 @@ type School struct {
 	gorm.Model // includes ID, CreatedAt, UpdatedAt, DeletedAt
 	Name       string
 	Address    string
-	Lat        float64
-	Lon        float64
+	Coordinate Coordinate
 
 	ContactID *uint
 	Contact   *Users `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to User
