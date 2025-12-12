@@ -4,6 +4,6 @@ import "gorm.io/gorm"
 
 type File struct {
 	gorm.Model
-	Path string
-	Name string
+	ID  uint
+	Url string
 }

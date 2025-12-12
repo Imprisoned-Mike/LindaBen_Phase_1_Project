@@ -1,0 +1,35 @@
+package models
+
+import (
+	"LindaBen_Phase_1_Project/internal/db"
+	"strconv"
+
+	"gorm.io/gorm"
+)
+
+type RoleParsed struct {
+	gorm.Model
+	Role     string //admin, school_admin, vendor_admin, user
+	EntityID *string
+}
+
+func ParseRole(user Users) RoleParsed {
+	var entityId *string
+
+	if user.UserRole.RoleName == "school_admin" {
+		var school School
+
+		err := db.Db.Where("contact_id = ?", user.ID).First(&school).Error
+		if err == nil {
+			idStr := strconv.Itoa(int(school.ID))
+			entityId = &idStr
+		}
+	}
+
+	return RoleParsed{
+		Role:     user.UserRole.RoleName,
+		EntityID: entityId,
+	}
+}
+
+//repeat for admin, vendor_admin, user

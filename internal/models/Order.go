@@ -8,6 +8,7 @@ import (
 
 type Order struct {
 	gorm.Model
+	ID       uint
 	Item     string
 	Quantity int
 	Unit     string  // "Kg", "L", "", etc.
@@ -17,4 +18,14 @@ type Order struct {
 	PurchaseTime time.Time
 
 	DeliveryID uint
+
+	VendorID *uint
+	Vendor   Vendor
+
+	isInternal bool
+
+	Status    string // "Pending", "Confirmed", "Completed", "Cancelled"
+	Completed string
+
+	Notes string
 }

@@ -12,21 +12,20 @@ import (
 type Delivery struct {
 	gorm.Model
 
+	ID uint
 	// One‐to‐many
 	Orders []Order `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
-	BoxType      string    // e.g. type of box/packaging
-	DeliveryDate time.Time // the scheduled or actual delivery datetime
+	Contract string // hold, completed
 
-	// Status
-	Status string // e.g. "pending", "in_progress", "completed", "cancelled", etc.
+	BoxType      string    // standard, premium, standard-holiday, premium-holiday
+	DeliveryDate time.Time // the scheduled or actual delivery datetime
 
 	// Belongs-to: School
 	SchoolID *uint
 	School   *School `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET SET NULL;"`
 
-	// One-to-many
-	Vendor []Vendor `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Notes string
 }
 
 // Get all Deliveries
