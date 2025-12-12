@@ -106,10 +106,10 @@ func GetUser(context *gin.Context) {
 // update user
 func UpdateUser(c *gin.Context) {
 	//var input models.Update
-	var User models.Users
+	var user models.Users
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	err := models.GetUser(&User, id)
+	err := models.GetUser(&user, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.AbortWithStatus(http.StatusNotFound)
@@ -119,11 +119,11 @@ func UpdateUser(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.BindJSON(&User)
-	err = models.UpdateUser(&User)
+	c.BindJSON(&user)
+	err = models.UpdateUser(&user)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.JSON(http.StatusOK, User)
+	c.JSON(http.StatusOK, user)
 }
