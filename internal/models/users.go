@@ -69,16 +69,6 @@ func (user *Users) ValidateUserPassword(password string) error {
 }
 
 // Get user by id
-func GetUserById(id uint) (Users, error) {
-	var user Users
-	err := db.Db.Where("id=?", id).Find(&user).Error
-	if err != nil {
-		return Users{}, err
-	}
-	return user, nil
-}
-
-// Get user by id
 func GetUser(Users *Users, id int) (err error) {
 	err = db.Db.Where("id = ?", id).First(Users).Error
 	if err != nil {
