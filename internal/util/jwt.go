@@ -80,7 +80,8 @@ func CurrentUser(context *gin.Context) models.Users {
 	claims, _ := token.Claims.(jwt.MapClaims)
 	userId := uint(claims["id"].(float64))
 
-	user, err := models.GetUserById(userId)
+	var user models.Users
+	err = models.GetUser(&user, int(userId))
 	if err != nil {
 		return models.Users{}
 	}
