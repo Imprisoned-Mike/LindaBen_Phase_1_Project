@@ -3,6 +3,8 @@ package models
 import (
 	"time"
 
+	"LindaBen_Phase_1_Project/internal/db"
+
 	"gorm.io/gorm"
 )
 
@@ -28,4 +30,31 @@ type Order struct {
 	Completed string
 
 	Notes string
+}
+
+// Get Order by id
+func GetOrder(Order *Order, id int) (err error) {
+	err = db.Db.Where("id = ?", id).First(Order).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Update Order
+func UpdateOrder(Order *Order) (err error) {
+	err = db.Db.Updates(Order).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Delete Order
+func DeleteOrder(Order *Order) (err error) {
+	err = db.Db.Delete(Order).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }

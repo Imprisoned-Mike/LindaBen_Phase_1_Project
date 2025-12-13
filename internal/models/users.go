@@ -85,3 +85,12 @@ func UpdateUser(Users *Users) (err error) {
 	}
 	return nil
 }
+
+// Delete User
+func DeleteUser(user *Users) (err error) {
+	err = db.Db.Delete(user).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
