@@ -18,8 +18,9 @@ type Delivery struct {
 
 	Contract string // hold, completed
 
-	BoxType      string    // standard, premium, standard-holiday, premium-holiday
-	DeliveryDate time.Time // the scheduled or actual delivery datetime
+	BoxType       string // standard, premium, standard-holiday, premium-holiday
+	ScheduledFrom time.Time
+	ScheduledTo   time.Time
 
 	// Belongs-to: School
 	SchoolID *uint
