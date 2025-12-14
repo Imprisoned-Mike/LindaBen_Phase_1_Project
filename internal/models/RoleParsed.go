@@ -3,12 +3,9 @@ package models
 import (
 	"LindaBen_Phase_1_Project/internal/db"
 	"strconv"
-
-	"gorm.io/gorm"
 )
 
 type RoleParsed struct {
-	gorm.Model
 	Role     string //admin, school_admin, vendor_admin, user
 	EntityID *string
 }
