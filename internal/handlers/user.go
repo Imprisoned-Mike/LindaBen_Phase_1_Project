@@ -9,6 +9,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"io"
+	"mime/multipart"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
@@ -194,4 +200,73 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, user)
+}
+
+// upload user avatar
+func UploadUserAvatar(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+
+	var user models.Users
+	err := models.GetUser(&user, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	fileHeader, err := c.FormFile("avatar")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Avatar file is required"})
+		return
+	}
+
+	file, err := CreateFileFromUpload(fileHeader)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = models.UploadUserAvatar(&user, file)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+func CreateFileFromUpload(fileHeader *multipart.FileHeader) (*models.File, error) {
+	// ensure uploads dir exists
+	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
+		return nil, err
+	}
+
+	filename := fmt.Sprintf("%d_%s", time.Now().Unix(), fileHeader.Filename)
+	path := filepath.Join("uploads", filename)
+
+	src, err := fileHeader.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+
+	dst, err := os.Create(path)
+	if err != nil {
+		return nil, err
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, src); err != nil {
+		return nil, err
+	}
+
+	file := &models.File{
+		Url: "/" + path,
+	}
+
+	return file.Save()
 }

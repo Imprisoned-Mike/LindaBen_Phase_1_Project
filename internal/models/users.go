@@ -96,3 +96,13 @@ func DeleteUser(user *Users) (err error) {
 	}
 	return nil
 }
+
+// Upload User Avatar
+func UploadUserAvatar(user *Users, file *File) (err error) {
+	user.Avatar = file
+	err = db.Db.Save(user).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
