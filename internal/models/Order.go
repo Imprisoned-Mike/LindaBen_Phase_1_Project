@@ -58,3 +58,21 @@ func DeleteOrder(Order *Order) (err error) {
 	}
 	return nil
 }
+
+// Add Order to Delivery
+func AddOrderToDelivery(delivery *Delivery, order *Order) (err error) {
+	err = db.Db.Model(delivery).Association("Orders").Append(order)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Remove Order from Delivery
+func RemoveOrderFromDelivery(delivery *Delivery, order *Order) (err error) {
+	err = db.Db.Model(delivery).Association("Orders").Delete(order)
+	if err != nil {
+		return err
+	}
+	return nil
+}

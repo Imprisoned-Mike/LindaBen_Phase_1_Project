@@ -74,3 +74,59 @@ func DeleteOrder(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, order)
 }
+
+// Add Order to Delivery
+func AddOrderToDelivery(c *gin.Context) {
+	var delivery models.Delivery
+	var order models.Order
+	deliveryID, _ := strconv.Atoi(c.Param("delivery_id"))
+	orderID, _ := strconv.Atoi(c.Param("order_id"))
+
+	err := db.Db.First(&delivery, deliveryID).Error
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Delivery not found"})
+		return
+	}
+
+	err = db.Db.First(&order, orderID).Error
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+		return
+	}
+
+	err = models.AddOrderToDelivery(&delivery, &order)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Order added to delivery successfully"})
+}
+
+// Remove Order from Delivery
+func RemoveOrderFromDelivery(c *gin.Context) {
+	var delivery models.Delivery
+	var order models.Order
+	deliveryID, _ := strconv.Atoi(c.Param("delivery_id"))
+	orderID, _ := strconv.Atoi(c.Param("order_id"))
+
+	err := db.Db.First(&delivery, deliveryID).Error
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Delivery not found"})
+		return
+	}
+
+	err = db.Db.First(&order, orderID).Error
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+		return
+	}
+
+	err = models.RemoveOrderFromDelivery(&delivery, &order)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Order removed from delivery successfully"})
+}
