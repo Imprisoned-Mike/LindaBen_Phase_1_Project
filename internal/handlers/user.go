@@ -76,14 +76,43 @@ func UserLogin(context *gin.Context) {
 }
 
 // get all users
-func GetUsers(context *gin.Context) {
-	var user []models.Users
-	err := models.GetUsers(&user)
-	if err != nil {
-		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+func GetUsers(c *gin.Context) {
+	// Bind query parameters into UserFilterParams
+	var filters models.UserFilterParams
+	if err := c.ShouldBindQuery(&filters); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	context.JSON(http.StatusOK, user)
+
+	// Set default pagination if not provided
+	if filters.Page == nil {
+		defaultPage := 1
+		filters.Page = &defaultPage
+	}
+	if filters.PageSize == nil {
+		defaultPageSize := 10
+		filters.PageSize = &defaultPageSize
+	}
+
+	// Set default sorting if not provided
+	if filters.SortBy == nil {
+		defaultSort := "id"
+		filters.SortBy = &defaultSort
+	}
+	if filters.SortOrder == nil {
+		defaultOrder := "asc"
+		filters.SortOrder = &defaultOrder
+	}
+
+	// Call QueryUsers with correct struct
+	response, err := models.QueryUsers(filters)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Return the paginated response
+	c.JSON(http.StatusOK, response)
 }
 
 // get user by id

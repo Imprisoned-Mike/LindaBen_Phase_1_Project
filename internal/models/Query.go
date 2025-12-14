@@ -2,69 +2,99 @@ package models
 
 import (
 	"LindaBen_Phase_1_Project/internal/db"
-
-	"github.com/gin-gonic/gin"
+	"fmt"
+	"math"
+	"strings"
 )
 
-func QueryUsers(
-	page int,
-	pageSize int,
-	sortBy string,
-	sortOrder string,
-	expand []string,
-	c *gin.Context,
-) ([]Users, int, int, error) {
+type UserFilterParams struct {
+	Search    *string  `form:"search"`
+	Role      *string  `form:"role"`
+	EntityID  *string  `form:"entityId"`
+	HasRole   *string  `form:"hasRole"`
+	ID        *uint    `form:"id"`
+	Email     *string  `form:"email"`
+	Name      *string  `form:"name"`
+	Page      *int     `form:"page"`
+	PageSize  *int     `form:"pageSize"`
+	SortBy    *string  `form:"sortBy"`
+	SortOrder *string  `form:"sortOrder"`
+	Expand    []string `form:"expand"`
+}
 
+func QueryUsers(filters UserFilterParams) (PaginatedResponse[Users], error) {
 	var users []Users
+	query := db.Db.Model(&Users{}).Preload("UserRole")
+
+	// Filters
+	if filters.Search != nil && *filters.Search != "" {
+		s := "%" + strings.ToLower(*filters.Search) + "%"
+		query = query.Where("LOWER(name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ?", s, s, s)
+	}
+	if filters.ID != nil {
+		query = query.Where("id = ?", *filters.ID)
+	}
+	if filters.Email != nil {
+		query = query.Where("email = ?", *filters.Email)
+	}
+	if filters.Name != nil {
+		query = query.Where("name = ?", *filters.Name)
+	}
+
+	// TODO: filter by Role, EntityID, HasRole using RoleParsed
+
+	// Total counts
 	var total int64
-	var totalUnfiltered int64
-
-	query := db.Db.Model(&Users{}).
-		Joins("UserRole")
-
-	// ---- Filters ----
-	if search := c.Query("search"); search != "" {
-		like := "%" + search + "%"
-		query = query.Where(
-			"users.name LIKE ? OR users.email LIKE ? OR users.phone LIKE ?",
-			like, like, like,
-		)
-	}
-
-	if email := c.Query("email"); email != "" {
-		query = query.Where("users.email LIKE ?", "%"+email+"%")
-	}
-
-	if name := c.Query("name"); name != "" {
-		query = query.Where("users.name LIKE ?", "%"+name+"%")
-	}
-
-	if role := c.Query("role"); role != "" {
-		query = query.Where("roles.role_name = ?", role)
-	}
-
-	// Count BEFORE pagination
 	query.Count(&total)
-
-	// Count unfiltered (optional but useful)
+	var totalUnfiltered int64
 	db.Db.Model(&Users{}).Count(&totalUnfiltered)
 
-	// ---- Sorting ----
-	order := sortBy
-	if sortOrder == "desc" {
-		order += " DESC"
+	// Pagination
+	page := 1
+	pageSize := 10
+	if filters.Page != nil {
+		page = *filters.Page
 	}
-	query = query.Order(order)
-
-	// ---- Pagination ----
+	if filters.PageSize != nil {
+		pageSize = *filters.PageSize
+	}
 	offset := (page - 1) * pageSize
 	query = query.Offset(offset).Limit(pageSize)
 
-	// ---- Expand relations ----
-	for _, field := range expand {
-		query = query.Preload(field)
+	// Sorting
+	sortBy := "id"
+	sortOrder := "asc"
+	if filters.SortBy != nil {
+		sortBy = *filters.SortBy
+	}
+	if filters.SortOrder != nil {
+		sortOrder = *filters.SortOrder
+	}
+	query = query.Order(fmt.Sprintf("%s %s", sortBy, sortOrder))
+
+	// Execute
+	if err := query.Find(&users).Error; err != nil {
+		return PaginatedResponse[Users]{}, err
 	}
 
-	err := query.Find(&users).Error
-	return users, int(total), int(totalUnfiltered), err
+	// Add RoleParsed
+	for i := range users {
+		users[i].RoleParsed = ParseRole(users[i])
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+
+	response := PaginatedResponse[Users]{
+		Data: users,
+		Meta: PaginationMeta{
+			Total:           int(total),
+			TotalUnfiltered: int(totalUnfiltered),
+			Page:            page,
+			PageSize:        pageSize,
+			TotalPages:      totalPages,
+		},
+	}
+
+	return response, nil
+
 }
