@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"LindaBen_Phase_1_Project/internal/db"
 	Login "LindaBen_Phase_1_Project/internal/login"
 	"LindaBen_Phase_1_Project/internal/models"
 	"errors"
@@ -118,17 +119,33 @@ func GetUsers(c *gin.Context) {
 // get user by id
 func GetUser(context *gin.Context) {
 	id, _ := strconv.Atoi(context.Param("id"))
+
+	// Bind query params
+	var expand []string
+	if e := context.QueryArray("expand"); len(e) > 0 {
+		expand = e
+	}
+
 	var user models.Users
-	err := models.GetUser(&user, id)
-	if err != nil {
+	query := db.Db.Model(&models.Users{})
+
+	// Preload avatar if requested
+	for _, field := range expand {
+		if field == "avatar" {
+			query = query.Preload("Avatar")
+		}
+	}
+
+	// Get user by ID
+	if err := query.First(&user, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			context.AbortWithStatus(http.StatusNotFound)
 			return
 		}
-
-		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	context.JSON(http.StatusOK, user)
 }
 
@@ -150,6 +167,28 @@ func UpdateUser(c *gin.Context) {
 	}
 	c.BindJSON(&user)
 	err = models.UpdateUser(&user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+func DeleteUser(c *gin.Context) {
+	var user models.Users
+	id, _ := strconv.Atoi(c.Param("id"))
+
+	err := models.GetUser(&user, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	err = models.DeleteUser(&user)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return

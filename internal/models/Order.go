@@ -32,9 +32,9 @@ type Order struct {
 	Notes string
 }
 
-// Get Order by id
-func GetOrder(Order *Order, id int) (err error) {
-	err = db.Db.Where("id = ?", id).First(Order).Error
+// Get Order by ID
+func GetOrderByID(Order *Order, id uint) (err error) {
+	err = db.Db.First(Order, id).Error
 	if err != nil {
 		return err
 	}

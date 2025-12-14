@@ -12,14 +12,43 @@ import (
 )
 
 // get all vendors
-func GetVendors(context *gin.Context) {
-	var vendor []models.Vendor
-	err := db.Db.Preload("Contact").Find(&vendor).Error
-	if err != nil {
-		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+func GetVendors(c *gin.Context) {
+	// Bind query parameters into VendorFilterParams
+	var filters models.VendorFilterParams
+	if err := c.ShouldBindQuery(&filters); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	context.JSON(http.StatusOK, vendor)
+
+	// Set default pagination if not provided
+	if filters.Page == nil {
+		defaultPage := 1
+		filters.Page = &defaultPage
+	}
+	if filters.PageSize == nil {
+		defaultPageSize := 10
+		filters.PageSize = &defaultPageSize
+	}
+
+	// Set default sorting if not provided
+	if filters.SortBy == nil {
+		defaultSort := "id"
+		filters.SortBy = &defaultSort
+	}
+	if filters.SortOrder == nil {
+		defaultOrder := "asc"
+		filters.SortOrder = &defaultOrder
+	}
+
+	// Call QueryUsers with correct struct
+	response, err := models.QueryVendors(filters)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Return the paginated response
+	c.JSON(http.StatusOK, response)
 }
 
 // get vendor by id
@@ -57,6 +86,28 @@ func UpdateVendor(c *gin.Context) {
 	}
 	c.BindJSON(&vendor)
 	err = models.UpdateVendor(&vendor)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	c.JSON(http.StatusOK, vendor)
+}
+
+func DeleteVendor(c *gin.Context) {
+	var vendor models.Vendor
+	id, _ := strconv.Atoi(c.Param("id"))
+
+	err := models.GetVendorByID(&vendor, uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	err = models.DeleteVendor(&vendor)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
