@@ -1,9 +1,6 @@
 package models
 
-import "gorm.io/gorm"
-
 type PaginatedResponse[T any] struct {
-	gorm.Model
 	Data []T `json:"data"`
 	Meta struct {
 		Total           int `json:"total"`
