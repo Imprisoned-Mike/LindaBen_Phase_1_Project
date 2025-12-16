@@ -103,3 +103,23 @@ func DeleteDelivery(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, delivery)
 }
+
+func CreateDelivery(c *gin.Context) {
+	var delivery models.Delivery
+
+	if err := c.ShouldBindJSON(&delivery); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if err := models.CreateDelivery(&delivery); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, delivery)
+}
