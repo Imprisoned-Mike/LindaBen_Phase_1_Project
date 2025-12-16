@@ -114,3 +114,23 @@ func DeleteVendor(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, vendor)
 }
+
+func CreateVendor(c *gin.Context) {
+	var vendor models.Vendor
+
+	if err := c.ShouldBindJSON(&vendor); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if err := models.CreateVendor(&vendor); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, vendor)
+}

@@ -130,3 +130,23 @@ func DeleteSchool(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, school)
 }
+
+func CreateSchool(c *gin.Context) {
+	var school models.School
+
+	if err := c.ShouldBindJSON(&school); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if err := models.CreateSchool(&school); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, school)
+}

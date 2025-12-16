@@ -270,3 +270,29 @@ func CreateFileFromUpload(fileHeader *multipart.FileHeader) (*models.File, error
 
 	return file.Save()
 }
+
+func Logout(c *gin.Context) {
+	refreshToken := c.GetHeader("X-Refresh-Token")
+	if refreshToken == "" {
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	err := DeleteRefreshToken(refreshToken)
+	if err != nil {
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func DeleteRefreshToken(token string) error {
+	result := db.Db.Where("token = ?", token).Delete(&RefreshToken{})
+
+	if result.RowsAffected == 0 {
+		return errors.New("refresh token not found")
+	}
+
+	return result.Error
+}

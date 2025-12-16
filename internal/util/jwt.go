@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -18,14 +17,15 @@ import (
 var privateKey = []byte(os.Getenv("JWT_PRIVATE_KEY"))
 
 // generate JWT token
-func GenerateJWT(user models.Users) (string, error) {
-	tokenTTL, _ := strconv.Atoi(os.Getenv("TOKEN_TTL"))
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":   user.ID,
+func GenerateAccessToken(user models.Users) (string, error) {
+	claims := jwt.MapClaims{
+		"sub":  user.ID, // subject (standard claim)
 		"role": user.RoleID,
 		"iat":  time.Now().Unix(),
-		"exp":  time.Now().Add(time.Second * time.Duration(tokenTTL)).Unix(),
-	})
+		"exp":  time.Now().Add(15 * time.Minute).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(privateKey)
 }
 
