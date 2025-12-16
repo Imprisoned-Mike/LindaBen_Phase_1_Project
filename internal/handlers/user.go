@@ -271,7 +271,7 @@ func CreateFileFromUpload(fileHeader *multipart.FileHeader) (*models.File, error
 	return file.Save()
 }
 
-func Logout(c *gin.Context) {
+func UserLogout(c *gin.Context) {
 	refreshToken := c.GetHeader("X-Refresh-Token")
 	if refreshToken == "" {
 		c.Status(http.StatusUnauthorized)
