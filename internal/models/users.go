@@ -55,10 +55,10 @@ func GetUsers(Users *[]Users) (err error) {
 	return nil
 }
 
-// Get user by name
-func GetUserByName(name string) (Users, error) {
+// Get user by email
+func GetUserByEmail(email string) (Users, error) {
 	var user Users
-	err := db.Db.Where("name=?", name).Find(&user).Error
+	err := db.Db.Where("email=?", email).Find(&user).Error
 	if err != nil {
 		return Users{}, err
 	}
