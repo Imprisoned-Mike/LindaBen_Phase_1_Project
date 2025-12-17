@@ -31,6 +31,21 @@ func main() {
 	// Setup Gin router
 	r := gin.Default()
 
+	// CORS middleware
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "https://rx.harvey-l.com/")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Handle preflight requests
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+			return
+		}
+
+		c.Next()
+	})
+
 	auth := r.Group("/api/auth")
 	{
 		auth.POST("/login", handlers.UserLogin)
