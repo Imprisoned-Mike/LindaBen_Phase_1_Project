@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -99,8 +98,8 @@ func main() {
 }
 
 func seedData() {
-	var roles = []models.Role{{RoleName: "admin", Description: "Administrator role"}, {RoleName: "customer", Description: "Authenticated customer role"}, {RoleName: "anonymous", Description: "Unauthenticated customer role"}}
-	var user = []models.Users{{Name: os.Getenv("ADMIN_NAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), RoleID: 1}}
+	var roles = []models.Role{{RoleName: "admin", Description: "Administrator role"}, {RoleName: "school", Description: "Authenticated school role"}, {RoleName: "vendor", Description: "Authenticated vendor role"}}
+	var user = []models.Users{{Name: os.Getenv("ADMIN_NAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), RoleID: 1}, {Name: os.Getenv("SCHOOL_NAME"), Email: os.Getenv("SCHOOL_EMAIL"), Password: os.Getenv("SCHOOL_PASSWORD"), RoleID: 2}, {Name: os.Getenv("VENDOR_NAME"), Email: os.Getenv("VENDOR_EMAIL"), Password: os.Getenv("VENDOR_PASSWORD"), RoleID: 3}}
 	db.Db.Save(&roles)
 	db.Db.Save(&user)
 }
@@ -116,21 +115,4 @@ func loadDatabase() {
 	db.Db.AutoMigrate(&models.Order{})
 
 	seedData()
-	SeedDemoUser()
-}
-
-func SeedDemoUser() {
-	demoUser := models.Users{
-		Name:     "Demo User",
-		Email:    "admin@logistics.com",
-		Password: "admin123", // ideally hash this
-		RoleID:   3,
-	}
-
-	_, err := demoUser.Save()
-	if err != nil {
-		fmt.Println("Failed to create demo user:", err)
-	} else {
-		fmt.Println("Demo user created successfully!")
-	}
 }
