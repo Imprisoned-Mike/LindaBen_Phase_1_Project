@@ -39,8 +39,6 @@ func main() {
 
 		// Handle preflight requests
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(200)
-			return
 		}
 
 		c.Next()
