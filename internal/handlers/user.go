@@ -80,6 +80,15 @@ func UserLogin(context *gin.Context) {
 
 	context.JSON(http.StatusOK, gin.H{"username": input.Name, "message": "Successfully logged in"})
 
+	// Generate a new refresh token
+	newRefreshToken, err := models.CreateRefreshToken(user.ID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"username": input.Name, "message": "Successfully logged in", "refresh_token": newRefreshToken})
+
 }
 
 // get all users
@@ -278,7 +287,7 @@ func UserLogout(c *gin.Context) {
 		return
 	}
 
-	err := DeleteRefreshToken(refreshToken)
+	err := models.DeleteRefreshToken(refreshToken)
 	if err != nil {
 		c.Status(http.StatusUnauthorized)
 		return
@@ -287,12 +296,19 @@ func UserLogout(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func DeleteRefreshToken(token string) error {
-	result := db.Db.Where("token = ?", token).Delete(&RefreshToken{})
+func Refresh(c *gin.Context) {
+	token := c.PostForm("refresh_token")
 
-	if result.RowsAffected == 0 {
-		return errors.New("refresh token not found")
+	rt, err := models.ValidateRefreshToken(token)
+	if err != nil {
+		c.Status(http.StatusUnauthorized)
+		return
 	}
 
-	return result.Error
+	newRefreshToken, err := models.CreateRefreshToken(rt.UserID)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"refresh_token": newRefreshToken})
 }
