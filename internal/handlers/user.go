@@ -64,7 +64,7 @@ func UserLogin(context *gin.Context) {
 		return
 	}
 
-	user, err := models.GetUserByName(input.Name)
+	user, err := models.GetUserByName(input.Email)
 
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -78,7 +78,7 @@ func UserLogin(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"username": input.Name, "message": "Successfully logged in"})
+	context.JSON(http.StatusOK, gin.H{"email": input.Email, "message": "Successfully logged in"})
 
 	// Generate a new refresh token
 	newRefreshToken, err := models.CreateRefreshToken(user.ID)
@@ -87,7 +87,7 @@ func UserLogin(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"username": input.Name, "message": "Successfully logged in", "refresh_token": newRefreshToken})
+	context.JSON(http.StatusOK, gin.H{"email": input.Email, "message": "Successfully logged in", "refresh_token": newRefreshToken})
 
 }
 
