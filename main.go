@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -115,4 +116,21 @@ func loadDatabase() {
 	db.Db.AutoMigrate(&models.Order{})
 
 	seedData()
+	SeedDemoUser()
+}
+
+func SeedDemoUser() {
+	demoUser := models.Users{
+		Name:     "Demo User",
+		Email:    "admin@logistics.com",
+		Password: "admin123", // ideally hash this
+		RoleID:   3,
+	}
+
+	_, err := demoUser.Save()
+	if err != nil {
+		fmt.Println("Failed to create demo user:", err)
+	} else {
+		fmt.Println("Demo user created successfully!")
+	}
 }
