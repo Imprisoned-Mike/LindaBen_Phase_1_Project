@@ -25,8 +25,8 @@ type Order struct {
 
 	IsInternal bool // Use later in fetch api to differentiate between internal and external orders
 
-	Status    string // "Pending", "Confirmed", "Completed", "Cancelled"
-	Completed string
+	Status      string // "Pending", "Confirmed", "Completed", "Cancelled"
+	CompletedAt *time.Time
 
 	Notes string
 }
