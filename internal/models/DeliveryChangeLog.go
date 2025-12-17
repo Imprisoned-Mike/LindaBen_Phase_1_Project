@@ -14,6 +14,6 @@ type DeliveryChangeLog struct {
 	ChangedByUser  Users
 	ChangedAt      time.Time
 	FieldName      string //scheduledAt, packageType, Notes, Contract, schoolID
-	oldVal         interface{}
-	newVal         interface{}
+	OldVal         interface{}
+	NewVal         interface{}
 }

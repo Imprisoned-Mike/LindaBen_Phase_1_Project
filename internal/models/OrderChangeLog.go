@@ -14,6 +14,6 @@ type OrderChangeLog struct {
 	ChangedByUser  Users
 	ChangedAt      time.Time
 	FieldName      string //status, quantity, item, UnitPrice, Notes, isInternal, vendorID
-	oldVal         interface{}
-	newVal         interface{}
+	OldVal         interface{}
+	NewVal         interface{}
 }
