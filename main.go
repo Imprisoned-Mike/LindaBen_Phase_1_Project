@@ -73,7 +73,7 @@ func main() {
 		deliveries.PUT("/:id", api.UpdateDelivery)
 		deliveries.DELETE("/:id", api.DeleteDelivery)
 		deliveries.POST("/:delivery_id/orders", api.AddOrderToDelivery)
-		deliveries.DELETE("/:delivery_id/orders/:order_id", api.RemoveOrderFromDelivery)
+		deliveries.DELETE("/:id/orders/:order_id", api.RemoveOrderFromDelivery)
 	}
 
 	order := r.Group("/api/orders")
@@ -98,10 +98,28 @@ func main() {
 }
 
 func seedData() {
-	var roles = []models.Role{{RoleName: "admin", Description: "Administrator role"}, {RoleName: "school", Description: "Authenticated school role"}, {RoleName: "vendor", Description: "Authenticated vendor role"}}
-	var user = []models.Users{{Name: os.Getenv("ADMIN_NAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), RoleID: 1}, {Name: os.Getenv("SCHOOL_NAME"), Email: os.Getenv("SCHOOL_EMAIL"), Password: os.Getenv("SCHOOL_PASSWORD"), RoleID: 2}, {Name: os.Getenv("VENDOR_NAME"), Email: os.Getenv("VENDOR_EMAIL"), Password: os.Getenv("VENDOR_PASSWORD"), RoleID: 3}}
+	var roles = []models.Role{{RoleName: "admin", Description: "Administrator role"},
+		{RoleName: "school", Description: "Authenticated school role"},
+		{RoleName: "vendor", Description: "Authenticated vendor role"},
+	}
+
+	for _, r := range roles {
+		var role models.Role
+		db.Db.FirstOrCreate(&role, models.Role{RoleName: r.RoleName})
+	}
+
+	var users = []models.Users{{Name: os.Getenv("ADMIN_NAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), RoleID: 1},
+		{Name: os.Getenv("SCHOOL_NAME"), Email: os.Getenv("SCHOOL_EMAIL"), Password: os.Getenv("SCHOOL_PASSWORD"), RoleID: 2},
+		{Name: os.Getenv("VENDOR_NAME"), Email: os.Getenv("VENDOR_EMAIL"), Password: os.Getenv("VENDOR_PASSWORD"), RoleID: 3},
+	}
+
+	for _, u := range users {
+		var user models.Users
+		db.Db.FirstOrCreate(&user, models.Users{Email: u.Email})
+	}
+
 	db.Db.Save(&roles)
-	db.Db.Save(&user)
+	db.Db.Save(&users)
 }
 
 // run migration

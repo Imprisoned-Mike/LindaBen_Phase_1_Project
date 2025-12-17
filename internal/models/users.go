@@ -18,7 +18,7 @@ type Users struct {
 	Phone    string
 
 	RoleID   uint
-	UserRole *Role `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to Role
+	UserRole *Role `gorm:"foreignKey:RoleID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to Role
 
 	AvatarID *uint
 	Avatar   *File `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
