@@ -37,12 +37,15 @@ func main() {
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-		// Handle preflight requests
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(200)
-		}
-
 		c.Next()
+	})
+
+	r.OPTIONS("/*path", func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "https://rx.harvey-l.com")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Status(200)
 	})
 
 	auth := r.Group("/api/auth")
