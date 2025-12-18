@@ -8,9 +8,8 @@ import (
 
 type Role struct {
 	gorm.Model
-	RoleName    string       `gorm:"uniqueIndex"`
-	Description string       `json:"description"`
-	Permissions []Permission `gorm:"many2many:role_permissions;"`
+	RoleName    string `gorm:"uniqueIndex"`
+	Description string `json:"description"`
 }
 
 // Create a role

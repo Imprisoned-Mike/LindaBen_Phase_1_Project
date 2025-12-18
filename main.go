@@ -125,18 +125,15 @@ func seedData() {
 		db.Db.FirstOrCreate(&role, models.Role{RoleName: r.RoleName})
 	}
 
-	var users = []models.Users{{Name: os.Getenv("ADMIN_NAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), RoleID: 1},
-		{Name: os.Getenv("SCHOOL_NAME"), Email: os.Getenv("SCHOOL_EMAIL"), Password: os.Getenv("SCHOOL_PASSWORD"), RoleID: 2},
-		{Name: os.Getenv("VENDOR_NAME"), Email: os.Getenv("VENDOR_EMAIL"), Password: os.Getenv("VENDOR_PASSWORD"), RoleID: 3},
+	var users = []models.Users{{Name: os.Getenv("ADMIN_USERNAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), RoleID: 1},
+		{Name: os.Getenv("SCHOOL_USERNAME"), Email: os.Getenv("SCHOOL_EMAIL"), Password: os.Getenv("SCHOOL_PASSWORD"), RoleID: 2},
+		{Name: os.Getenv("VENDOR_USERNAME"), Email: os.Getenv("VENDOR_EMAIL"), Password: os.Getenv("VENDOR_PASSWORD"), RoleID: 3},
 	}
 
 	for _, u := range users {
 		var user models.Users
 		db.Db.FirstOrCreate(&user, models.Users{Email: u.Email})
 	}
-
-	db.Db.Save(&roles)
-	db.Db.Save(&users)
 }
 
 // run migration
