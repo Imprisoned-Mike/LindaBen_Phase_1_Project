@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -19,6 +20,7 @@ func main() {
 	if err != nil {
 		log.Println("No .env file found, proceeding with defaults")
 	}
+
 
 	// Connect to SQLite DB
 	database := db.InitDb() // SQLite file is handled in db package
@@ -131,9 +133,24 @@ func seedData() {
 	}
 
 	for _, u := range users {
-		var user models.Users
-		db.Db.FirstOrCreate(&user, models.Users{Email: u.Email})
+		var existing models.Users
+		result := db.Db.Where("email = ?", u.Email).First(&existing)
+
+		if result.RowsAffected == 0 {
+			// hash password
+			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+
+			newUser := models.Users{
+				Name:     u.Name,
+				Email:    u.Email,
+				Password: string(hashedPassword),
+				RoleID:   u.RoleID,
+			}
+
+			db.Db.Create(&newUser)
+		}
 	}
+
 }
 
 // run migration
