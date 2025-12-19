@@ -21,7 +21,6 @@ func main() {
 		log.Println("No .env file found, proceeding with defaults")
 	}
 
-
 	// Connect to SQLite DB
 	database := db.InitDb() // SQLite file is handled in db package
 	if database == nil {
@@ -137,9 +136,7 @@ func seedData() {
 		result := db.Db.Where("email = ?", u.Email).First(&existing)
 
 		if result.RowsAffected == 0 {
-			// hash password
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-
 			newUser := models.Users{
 				Name:     u.Name,
 				Email:    u.Email,
