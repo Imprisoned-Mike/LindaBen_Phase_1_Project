@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"LindaBen_Phase_1_Project/internal/db"
-	Login "LindaBen_Phase_1_Project/internal/login"
+	"LindaBen_Phase_1_Project/internal/login"
 	"LindaBen_Phase_1_Project/internal/models"
 	"errors"
 	"fmt"
