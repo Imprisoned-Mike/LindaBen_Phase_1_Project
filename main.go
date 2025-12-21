@@ -11,7 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -22,7 +21,7 @@ func main() {
 	}
 
 	// Connect to SQLite DB
-	database := db.InitDb() // SQLite file is handled in db package
+	database := db.InitDb("mydatabase.db") // SQLite file is handled in db package
 	if database == nil {
 		log.Fatal("Failed to connect to database")
 	}
@@ -127,22 +126,29 @@ func seedData() {
 	}
 
 	for _, u := range users {
-		var existing models.Users
-		result := db.Db.Where("email = ?", u.Email).First(&existing)
+		log.Printf("Seeding user: %s with email: %s and roles: %s", u.Name, u.Email, u.Roles)
 
-		if result.RowsAffected == 0 {
-			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+		var existingUser models.Users
+		err := db.Db.Where("email = ?", u.Email).First(&existingUser).Error
+
+		if err == nil {
+			// User exists, update details
+			// We set the plaintext password; the BeforeSave hook in the model will hash it.
+			existingUser.Name = u.Name
+			existingUser.Roles = u.Roles
+			existingUser.Password = u.Password
+			db.Db.Save(&existingUser)
+		} else {
+			// Create new user
 			newUser := models.Users{
 				Name:     u.Name,
 				Email:    u.Email,
-				Password: string(hashedPassword),
+				Password: u.Password,
 				Roles:    u.Roles,
 			}
-
 			db.Db.Create(&newUser)
 		}
 	}
-
 }
 
 // run migration

@@ -9,9 +9,9 @@ import (
 
 var Db *gorm.DB
 
-func InitDb() *gorm.DB {
+func InitDb(dsn string) *gorm.DB {
 	var err error
-	Db, err = gorm.Open(sqlite.Open("mydatabase.db"), &gorm.Config{})
+	Db, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Error connecting to database:", err)
 		return nil
