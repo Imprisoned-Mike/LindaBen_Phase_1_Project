@@ -20,7 +20,7 @@ var privateKey = []byte(os.Getenv("JWT_PRIVATE_KEY"))
 func GenerateAccessToken(user models.Users) (string, error) {
 	claims := jwt.MapClaims{
 		"sub":  user.ID, // subject (standard claim)
-		"role": user.RoleID,
+		"role": user.Roles,
 		"iat":  time.Now().Unix(),
 		"exp":  time.Now().Add(15 * time.Minute).Unix(),
 	}

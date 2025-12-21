@@ -60,7 +60,7 @@ func main() {
 		user.GET("", handlers.GetUsers)
 		user.GET("/:id", handlers.GetUser)
 		user.POST("/:id/avatar", handlers.UploadUserAvatar)
-		user.POST("", handlers.Register)
+		user.POST("", handlers.CreateUser)
 		user.PUT("/:id", handlers.UpdateUser)
 		user.DELETE("/:id", handlers.DeleteUser)
 	}
@@ -126,9 +126,9 @@ func seedData() {
 		db.Db.FirstOrCreate(&role, models.Role{RoleName: r.RoleName})
 	}
 
-	var users = []models.Users{{Name: os.Getenv("ADMIN_USERNAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), RoleID: 1},
-		{Name: os.Getenv("SCHOOL_USERNAME"), Email: os.Getenv("SCHOOL_EMAIL"), Password: os.Getenv("SCHOOL_PASSWORD"), RoleID: 2},
-		{Name: os.Getenv("VENDOR_USERNAME"), Email: os.Getenv("VENDOR_EMAIL"), Password: os.Getenv("VENDOR_PASSWORD"), RoleID: 3},
+	var users = []models.Users{{Name: os.Getenv("ADMIN_USERNAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), Roles: "admin"},
+		{Name: os.Getenv("SCHOOL_USERNAME"), Email: os.Getenv("SCHOOL_EMAIL"), Password: os.Getenv("SCHOOL_PASSWORD"), Roles: "school_admin"},
+		{Name: os.Getenv("VENDOR_USERNAME"), Email: os.Getenv("VENDOR_EMAIL"), Password: os.Getenv("VENDOR_PASSWORD"), Roles: "vendor_admin"},
 	}
 
 	for _, u := range users {
@@ -141,7 +141,7 @@ func seedData() {
 				Name:     u.Name,
 				Email:    u.Email,
 				Password: string(hashedPassword),
-				RoleID:   u.RoleID,
+				Roles:    u.Roles,
 			}
 
 			db.Db.Create(&newUser)

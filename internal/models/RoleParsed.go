@@ -13,7 +13,7 @@ type RoleParsed struct {
 func ParseRole(user Users) RoleParsed {
 	var entityId *string
 
-	if user.UserRole.RoleName == "school_admin" {
+	if user.Roles == "school_admin" {
 		var school School
 
 		err := db.Db.Where("contact_id = ?", user.ID).First(&school).Error
@@ -24,7 +24,7 @@ func ParseRole(user Users) RoleParsed {
 	}
 
 	return RoleParsed{
-		Role:     user.UserRole.RoleName,
+		Role:     user.Roles,
 		EntityID: entityId,
 	}
 }

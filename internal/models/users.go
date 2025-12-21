@@ -17,8 +17,7 @@ type Users struct {
 	Email    string `gorm:"unique"`
 	Phone    string
 
-	RoleID   uint
-	UserRole *Role `gorm:"foreignKey:RoleID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to Role
+	Roles string
 
 	AvatarID *uint
 	Avatar   *File `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
