@@ -121,16 +121,6 @@ func seedData() {
 		return
 	}
 
-	var roles = []models.Role{{RoleName: "admin", Description: "Administrator role"},
-		{RoleName: "school", Description: "Authenticated school role"},
-		{RoleName: "vendor", Description: "Authenticated vendor role"},
-	}
-
-	for _, r := range roles {
-		var role models.Role
-		db.Db.FirstOrCreate(&role, models.Role{RoleName: r.RoleName})
-	}
-
 	var users = []models.Users{{Name: os.Getenv("ADMIN_USERNAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), Roles: "admin"},
 		{Name: os.Getenv("SCHOOL_USERNAME"), Email: os.Getenv("SCHOOL_EMAIL"), Password: os.Getenv("SCHOOL_PASSWORD"), Roles: "school_admin"},
 		{Name: os.Getenv("VENDOR_USERNAME"), Email: os.Getenv("VENDOR_EMAIL"), Password: os.Getenv("VENDOR_PASSWORD"), Roles: "vendor_admin"},
@@ -157,7 +147,6 @@ func seedData() {
 
 // run migration
 func loadDatabase() {
-	db.Db.AutoMigrate(&models.Role{})
 	db.Db.AutoMigrate(&models.Users{})
 	db.Db.AutoMigrate(&models.School{})
 	db.Db.AutoMigrate(&models.Vendor{})
