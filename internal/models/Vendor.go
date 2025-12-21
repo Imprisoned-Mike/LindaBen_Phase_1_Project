@@ -11,12 +11,11 @@ type Vendor struct {
 	ID         uint
 	Name       string
 	Address    string
-	Coordinate Coordinate
+	Coordinate Coordinate `gorm:"embedded"`
 
 	Type string // "produce", "shelf_stable", "packaging"
 
-	ContactID *uint
-	Contact   *Users `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to User
+	Contact *Users `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to User
 }
 
 // Get all Vendors

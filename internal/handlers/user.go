@@ -21,7 +21,7 @@ import (
 )
 
 // Register user
-func Register(context *gin.Context) {
+func CreateUser(context *gin.Context) {
 	var input Login.Register
 
 	if err := context.ShouldBindJSON(&input); err != nil {
@@ -33,7 +33,7 @@ func Register(context *gin.Context) {
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: input.Password,
-		RoleID:   3,
+		Roles:   input.Roles,
 	}
 
 	savedUser, err := user.Save()
