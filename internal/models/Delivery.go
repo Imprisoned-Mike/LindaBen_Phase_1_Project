@@ -24,7 +24,7 @@ type Delivery struct {
 
 	// Belongs-to: School
 	SchoolID *uint
-	School   *School `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET SET NULL;"`
+	School   *School `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
 	Notes string
 }

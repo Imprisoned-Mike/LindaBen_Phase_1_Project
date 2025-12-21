@@ -112,11 +112,6 @@ func QueryUsers(filters UserFilterParams) (PaginatedResponse[Users], error) {
 		return PaginatedResponse[Users]{}, err
 	}
 
-	// Add RoleParsed
-	for i := range users {
-		users[i].RoleParsed = ParseRole(users[i])
-	}
-
 	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
 
 	response := PaginatedResponse[Users]{
@@ -151,17 +146,13 @@ func QuerySchools(filters SchoolFilterParams) (PaginatedResponse[School], error)
 		}
 	}
 
-	if filters.contactUserID != nil {
-		query = query.Where("contact_user_id = ?", *filters.contactUserID)
-	}
-
 	// TODO: filter by Role, EntityID, HasRole using RoleParsed
 
 	// Total counts
 	var total int64
 	query.Count(&total)
 	var totalUnfiltered int64
-	db.Db.Model(&Users{}).Count(&totalUnfiltered)
+	db.Db.Model(&School{}).Count(&totalUnfiltered)
 
 	// Pagination
 	page := 1
@@ -218,17 +209,13 @@ func QueryVendors(filters VendorFilterParams) (PaginatedResponse[Vendor], error)
 		query = query.Where("LOWER(name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ?", s, s, s)
 	}
 
-	if len(filters.Types) > 0 {
-		query = query.Where("type IN ?", filters.Types)
-	}
-
 	// TODO: filter by Role, EntityID, HasRole using RoleParsed
 
 	// Total counts
 	var total int64
 	query.Count(&total)
 	var totalUnfiltered int64
-	db.Db.Model(&Users{}).Count(&totalUnfiltered)
+	db.Db.Model(&Vendor{}).Count(&totalUnfiltered)
 
 	// Pagination
 	page := 1
@@ -304,7 +291,7 @@ func QueryDeliveries(filters DeliveryFilterParams) (PaginatedResponse[Delivery],
 	var total int64
 	query.Count(&total)
 	var totalUnfiltered int64
-	db.Db.Model(&Users{}).Count(&totalUnfiltered)
+	db.Db.Model(&Delivery{}).Count(&totalUnfiltered)
 
 	// Pagination
 	page := 1

@@ -21,6 +21,14 @@ func ParseRole(user Users) RoleParsed {
 			idStr := strconv.Itoa(int(school.ID))
 			entityId = &idStr
 		}
+	} else if user.Roles == "vendor_admin" {
+		var vendor Vendor
+
+		err := db.Db.Where("contact_id = ?", user.ID).First(&vendor).Error
+		if err == nil {
+			idStr := strconv.Itoa(int(vendor.ID))
+			entityId = &idStr
+		}
 	}
 
 	return RoleParsed{
