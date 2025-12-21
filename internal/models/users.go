@@ -12,15 +12,15 @@ import (
 
 type Users struct {
 	gorm.Model
-	Name     string
-	Password string
-	Email    string `gorm:"unique"`
-	Phone    string
+	Name     string `json:"name"`
+	Password string `json:"-"`
+	Email    string `gorm:"unique" json:"email"`
+	Phone    string `json:"phone"`
 
-	Roles string
+	Roles string `json:"roles"`
 
-	AvatarID *uint
-	Avatar   *File `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	AvatarID *uint `json:"avatarId"`
+	Avatar   *File `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"avatar,omitempty"`
 }
 
 // Save user details

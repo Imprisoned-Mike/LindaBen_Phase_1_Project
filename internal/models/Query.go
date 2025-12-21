@@ -59,7 +59,7 @@ type DeliveryFilterParams struct {
 
 func QueryUsers(filters UserFilterParams) (PaginatedResponse[Users], error) {
 	var users []Users
-	query := db.Db.Model(&Users{}).Preload("UserRole")
+	query := db.Db.Model(&Users{}).Preload("Avatar")
 
 	// Filters
 	if filters.Search != nil && *filters.Search != "" {
