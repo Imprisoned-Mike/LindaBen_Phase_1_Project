@@ -15,7 +15,8 @@ type Vendor struct {
 
 	Type string // "produce", "shelf_stable", "packaging"
 
-	Contact *Users `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to User
+	ContactID *uint
+	Contact   *Users `gorm:"foreignKey:ContactID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to User
 }
 
 // Get all Vendors

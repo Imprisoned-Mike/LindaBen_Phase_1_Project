@@ -11,7 +11,7 @@ import math
 from openai import RateLimitError, APIError 
 
 
-client = OpenAI(api_key="")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class Order(BaseModel):
     item: str

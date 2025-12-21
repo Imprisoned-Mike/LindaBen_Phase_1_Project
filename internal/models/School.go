@@ -12,7 +12,8 @@ type School struct {
 	Address    string
 	Coordinate Coordinate `gorm:"embedded"`
 
-	Contact *Users `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to User
+	ContactID *uint
+	Contact   *Users `gorm:"foreignKey:ContactID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to User
 }
 
 // Get all Schools

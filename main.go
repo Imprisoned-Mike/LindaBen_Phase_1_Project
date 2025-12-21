@@ -116,6 +116,11 @@ func main() {
 }
 
 func seedData() {
+	if os.Getenv("ADMIN_EMAIL") == "" {
+		log.Println("Skipping seed data: ADMIN_EMAIL not set")
+		return
+	}
+
 	var roles = []models.Role{{RoleName: "admin", Description: "Administrator role"},
 		{RoleName: "school", Description: "Authenticated school role"},
 		{RoleName: "vendor", Description: "Authenticated vendor role"},
@@ -152,7 +157,6 @@ func seedData() {
 
 // run migration
 func loadDatabase() {
-	db.InitDb()
 	db.Db.AutoMigrate(&models.Role{})
 	db.Db.AutoMigrate(&models.Users{})
 	db.Db.AutoMigrate(&models.School{})

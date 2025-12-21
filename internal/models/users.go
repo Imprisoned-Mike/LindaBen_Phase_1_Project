@@ -21,8 +21,6 @@ type Users struct {
 
 	AvatarID *uint
 	Avatar   *File `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-
-	RoleParsed RoleParsed `gorm:"-"`
 }
 
 // Save user details
