@@ -2,12 +2,10 @@ package models
 
 import (
 	"LindaBen_Phase_1_Project/internal/db"
-
-	"gorm.io/gorm"
 )
 
 type Vendor struct {
-	gorm.Model        // includes ID, CreatedAt, UpdatedAt, DeletedAt
+	Model      // includes ID, CreatedAt, UpdatedAt
 	Name       string `gorm:"unique"`
 	Address    string
 	Coordinate Coordinate `gorm:"embedded"`

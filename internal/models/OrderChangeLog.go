@@ -2,13 +2,10 @@ package models
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type OrderChangeLog struct {
-	gorm.Model
-	ID             uint
+	Model
 	OrderID        uint
 	ChangeByUserID uint
 	ChangedByUser  Users

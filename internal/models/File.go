@@ -2,12 +2,10 @@ package models
 
 import (
 	"LindaBen_Phase_1_Project/internal/db"
-
-	"gorm.io/gorm"
 )
 
 type File struct {
-	gorm.Model
+	Model
 	Url string
 }
 

@@ -4,15 +4,12 @@ import (
 	"time"
 
 	"LindaBen_Phase_1_Project/internal/db"
-
-	"gorm.io/gorm"
 )
 
 // Delivery model
 type Delivery struct {
-	gorm.Model
+	Model
 
-	ID uint
 	// One‐to‐many
 	Orders []Order `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
