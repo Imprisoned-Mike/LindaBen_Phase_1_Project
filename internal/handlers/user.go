@@ -4,6 +4,7 @@ import (
 	"LindaBen_Phase_1_Project/internal/db"
 	Login "LindaBen_Phase_1_Project/internal/login"
 	"LindaBen_Phase_1_Project/internal/models"
+	"LindaBen_Phase_1_Project/internal/util"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,7 +18,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/golang-jwt/jwt/v5"
 
 	// "github.com/goccy/go-yaml/token"
 	"gorm.io/gorm"
@@ -82,14 +82,7 @@ func UserLogin(context *gin.Context) {
 	}
 
 	// Generate JWT Token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":  user.ID,
-		"role": user.Roles,
-		"iat":  time.Now().Unix(),
-		"exp":  time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 day token
-	})
-
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	tokenString, err := util.GenerateAccessToken(user)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
@@ -255,7 +248,7 @@ func UploadUserAvatar(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{"url": file.Url})
 }
 
 func CreateFileFromUpload(fileHeader *multipart.FileHeader) (*models.File, error) {
