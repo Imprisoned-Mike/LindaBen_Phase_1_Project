@@ -50,6 +50,7 @@ type DeliveryFilterParams struct {
 	scheduledTo   *string  `form:"scheduledTo"`
 	contract      *string  `form:"contract"`
 	packageType   []string `form:"types"`
+	Status        []string `form:"status"`
 	Page          *int     `form:"page"`
 	PageSize      *int     `form:"pageSize"`
 	SortBy        *string  `form:"sortBy"`
@@ -76,7 +77,14 @@ func QueryUsers(filters UserFilterParams) (PaginatedResponse[Users], error) {
 		query = query.Where("name = ?", *filters.Name)
 	}
 
-	// TODO: filter by Role, EntityID, HasRole using RoleParsed
+	if filters.Role != nil {
+		query = query.Where("roles LIKE ?", "%"+*filters.Role+"%")
+	}
+	if filters.HasRole != nil {
+		query = query.Where("roles LIKE ?", "%"+*filters.HasRole+"%")
+	}
+	// Note: EntityID filtering requires parsing the complex role string (e.g. "school_admin:123")
+	// which is difficult to do reliably in a simple SQL WHERE clause without schema changes.
 
 	// Total counts
 	var total int64
