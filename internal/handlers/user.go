@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"LindaBen_Phase_1_Project/internal/db"
-	"LindaBen_Phase_1_Project/internal/login"
+	Login "LindaBen_Phase_1_Project/internal/login"
 	"LindaBen_Phase_1_Project/internal/models"
 	"errors"
 	"fmt"
@@ -17,6 +17,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
+
+	// "github.com/goccy/go-yaml/token"
 	"gorm.io/gorm"
 )
 
@@ -33,7 +36,7 @@ func CreateUser(context *gin.Context) {
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: input.Password,
-		Roles:   input.Roles,
+		Roles:    input.Roles,
 	}
 
 	savedUser, err := user.Save()
@@ -67,28 +70,33 @@ func UserLogin(context *gin.Context) {
 	user, err := models.GetUserByEmail(input.Email)
 
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
 	err = user.ValidateUserPassword(input.Password)
 
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"email": input.Email, "message": "Successfully logged in"})
+	// Generate JWT Token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
+	})
 
-	// Generate a new refresh token
-	newRefreshToken, err := models.CreateRefreshToken(user.ID)
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"email": input.Email, "message": "Successfully logged in", "refresh_token": newRefreshToken})
-
+	context.JSON(http.StatusOK, models.LoginResponse{
+		Token: tokenString,
+		User:  user,
+	})
 }
 
 // get all users
@@ -281,34 +289,5 @@ func CreateFileFromUpload(fileHeader *multipart.FileHeader) (*models.File, error
 }
 
 func UserLogout(c *gin.Context) {
-	refreshToken := c.GetHeader("X-Refresh-Token")
-	if refreshToken == "" {
-		c.Status(http.StatusUnauthorized)
-		return
-	}
-
-	err := models.DeleteRefreshToken(refreshToken)
-	if err != nil {
-		c.Status(http.StatusUnauthorized)
-		return
-	}
-
 	c.Status(http.StatusNoContent)
-}
-
-func Refresh(c *gin.Context) {
-	token := c.PostForm("refresh_token")
-
-	rt, err := models.ValidateRefreshToken(token)
-	if err != nil {
-		c.Status(http.StatusUnauthorized)
-		return
-	}
-
-	newRefreshToken, err := models.CreateRefreshToken(rt.UserID)
-	if err != nil {
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"refresh_token": newRefreshToken})
 }
