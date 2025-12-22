@@ -8,6 +8,7 @@ import (
 	"LindaBen_Phase_1_Project/internal/db"
 	"LindaBen_Phase_1_Project/internal/handlers"
 	"LindaBen_Phase_1_Project/internal/models"
+	"LindaBen_Phase_1_Project/internal/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -33,19 +34,17 @@ func main() {
 
 	// CORS middleware
 	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "https://rx.harvey-l.com")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "https://rx.harvey-l.com") // Or use "*" for development
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Refresh-Token")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
 
 		c.Next()
-	})
-
-	r.OPTIONS("/*path", func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "https://rx.harvey-l.com")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Status(200)
 	})
 
 	auth := r.Group("/api/auth")
@@ -54,7 +53,7 @@ func main() {
 		auth.POST("/logout", handlers.UserLogout)
 	}
 
-	user := r.Group("/api/users")
+	user := r.Group("/api/users", util.JWTAuthAdmin())
 	{
 		user.GET("", handlers.GetUsers)
 		user.GET("/:id", handlers.GetUser)
@@ -64,7 +63,7 @@ func main() {
 		user.DELETE("/:id", handlers.DeleteUser)
 	}
 
-	school := r.Group("/api/schools")
+	school := r.Group("/api/schools", util.JWTAuthSchool())
 	{
 		school.GET("", api.GetSchools)
 		school.GET("/:id", api.GetSchool)
@@ -73,7 +72,7 @@ func main() {
 		school.DELETE("/:id", api.DeleteSchool)
 	}
 
-	vendor := r.Group("/api/vendors")
+	vendor := r.Group("/api/vendors", util.JWTAuthVendor())
 	{
 		vendor.GET("", api.GetVendors)
 		vendor.GET("/:id", api.GetVendor)
@@ -82,7 +81,7 @@ func main() {
 		vendor.DELETE("/:id", api.DeleteVendor)
 	}
 
-	deliveries := r.Group("/api/deliveries")
+	deliveries := r.Group("/api/deliveries", util.JWTAuthSchool())
 	{
 		deliveries.GET("", api.GetDeliveries)
 		deliveries.GET("/:id", api.GetDelivery)
@@ -93,7 +92,7 @@ func main() {
 		deliveries.DELETE("/:id/orders/:order_id", api.RemoveOrderFromDelivery)
 	}
 
-	order := r.Group("/api/orders")
+	order := r.Group("/api/orders", util.JWTAuthSchool())
 	{
 		order.GET("/:id", api.GetOrderByID)
 		order.PUT("/:id", api.UpdateOrder)
