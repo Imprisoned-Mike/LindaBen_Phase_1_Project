@@ -1,9 +1,7 @@
 package models
 
-import "gorm.io/gorm"
-
 type LoginResponse struct {
-	gorm.Model
+	Model
 	Token string `json:"token"`
 	User  Users  `json:"user"`
 }

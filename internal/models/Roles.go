@@ -2,12 +2,10 @@ package models
 
 import (
 	"LindaBen_Phase_1_Project/internal/db"
-
-	"gorm.io/gorm"
 )
 
 type Role struct {
-	gorm.Model
+	Model
 	RoleName    string `gorm:"uniqueIndex"`
 	Description string `json:"description"`
 }

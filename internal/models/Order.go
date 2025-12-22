@@ -4,12 +4,10 @@ import (
 	"time"
 
 	"LindaBen_Phase_1_Project/internal/db"
-
-	"gorm.io/gorm"
 )
 
 type Order struct {
-	gorm.Model
+	Model
 	Item     string
 	Quantity int
 	Unit     string  // "Kg", "L", "", etc.
