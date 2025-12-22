@@ -83,8 +83,10 @@ func UserLogin(context *gin.Context) {
 
 	// Generate JWT Token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
+		"sub":  user.ID,
+		"role": user.Roles,
+		"iat":  time.Now().Unix(),
+		"exp":  time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 day token
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
