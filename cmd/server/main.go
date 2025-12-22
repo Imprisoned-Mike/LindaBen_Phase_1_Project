@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 
-	"LindaBen_Phase_1_Project/internal/api"
 	"LindaBen_Phase_1_Project/internal/db"
 	"LindaBen_Phase_1_Project/internal/handlers"
 	"LindaBen_Phase_1_Project/internal/models"
@@ -65,40 +64,40 @@ func main() {
 
 	school := r.Group("/api/schools", util.JWTAuthSchool())
 	{
-		school.GET("", api.GetSchools)
-		school.GET("/:id", api.GetSchool)
-		school.POST("", api.CreateSchool)
-		school.PUT("/:id", api.UpdateSchool)
-		school.DELETE("/:id", api.DeleteSchool)
+		school.GET("", handlers.GetSchools)
+		school.GET("/:id", handlers.GetSchool)
+		school.POST("", handlers.CreateSchool)
+		school.PUT("/:id", handlers.UpdateSchool)
+		school.DELETE("/:id", handlers.DeleteSchool)
 	}
 
 	vendor := r.Group("/api/vendors", util.JWTAuthVendor())
 	{
-		vendor.GET("", api.GetVendors)
-		vendor.GET("/:id", api.GetVendor)
-		vendor.POST("", api.CreateVendor)
-		vendor.PUT("/:id", api.UpdateVendor)
-		vendor.DELETE("/:id", api.DeleteVendor)
+		vendor.GET("", handlers.GetVendors)
+		vendor.GET("/:id", handlers.GetVendor)
+		vendor.POST("", handlers.CreateVendor)
+		vendor.PUT("/:id", handlers.UpdateVendor)
+		vendor.DELETE("/:id", handlers.DeleteVendor)
 	}
 
 	deliveries := r.Group("/api/deliveries", util.JWTAuthSchool())
 	{
-		deliveries.GET("", api.GetDeliveries)
-		deliveries.GET("/:id", api.GetDelivery)
-		deliveries.POST("", api.CreateDelivery)
-		deliveries.PUT("/:id", api.UpdateDelivery)
-		deliveries.DELETE("/:id", api.DeleteDelivery)
-		deliveries.POST("/:delivery_id/orders", api.AddOrderToDelivery)
-		deliveries.DELETE("/:id/orders/:order_id", api.RemoveOrderFromDelivery)
+		deliveries.GET("", handlers.GetDeliveries)
+		deliveries.GET("/:id", handlers.GetDelivery)
+		deliveries.POST("", handlers.CreateDelivery)
+		deliveries.PUT("/:id", handlers.UpdateDelivery)
+		deliveries.DELETE("/:id", handlers.DeleteDelivery)
+		deliveries.POST("/:delivery_id/orders", handlers.AddOrderToDelivery)
+		deliveries.DELETE("/:id/orders/:order_id", handlers.RemoveOrderFromDelivery)
 	}
 
 	order := r.Group("/api/orders", util.JWTAuthSchool())
 	{
-		order.GET("/:id", api.GetOrderByID)
-		order.PUT("/:id", api.UpdateOrder)
-		// order.GET("/:id/logs", api.GetOrderLogs) // WIP
-		order.DELETE("/:id", api.DeleteOrder)
-		// order.GET("items/search", api.SearchOrderItems) // WIP
+		order.GET("/:id", handlers.GetOrderByID)
+		order.PUT("/:id", handlers.UpdateOrder)
+		// order.GET("/:id/logs", handlers.GetOrderLogs) // WIP
+		order.DELETE("/:id", handlers.DeleteOrder)
+		// order.GET("items/search", handlers.SearchOrderItems) // WIP
 	}
 
 	// Start server
