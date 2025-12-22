@@ -13,7 +13,8 @@ type RoleParsed struct {
 func ParseRole(user Users) RoleParsed {
 	var entityId *string
 
-	if user.Roles == "school_admin" {
+	switch user.Roles {
+	case "school_admin":
 		var school School
 
 		err := db.Db.Where("contact_id = ?", user.ID).First(&school).Error
@@ -21,7 +22,7 @@ func ParseRole(user Users) RoleParsed {
 			idStr := strconv.Itoa(int(school.ID))
 			entityId = &idStr
 		}
-	} else if user.Roles == "vendor_admin" {
+	case "vendor_admin":
 		var vendor Vendor
 
 		err := db.Db.Where("contact_id = ?", user.ID).First(&vendor).Error

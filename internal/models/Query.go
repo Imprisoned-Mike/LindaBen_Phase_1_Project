@@ -24,8 +24,8 @@ type UserFilterParams struct {
 
 type SchoolFilterParams struct {
 	Search        *string  `form:"search"`
-	hasContact    *bool    `form:"hasContact"`
-	contactUserID *uint    `form:"contactUserId"`
+	HasContact    *bool    `form:"hasContact"`
+	ContactUserID *uint    `form:"contactUserId"`
 	Page          *int     `form:"page"`
 	PageSize      *int     `form:"pageSize"`
 	SortBy        *string  `form:"sortBy"`
@@ -136,14 +136,17 @@ func QuerySchools(filters SchoolFilterParams) (PaginatedResponse[School], error)
 	// Filters
 	if filters.Search != nil && *filters.Search != "" {
 		s := "%" + strings.ToLower(*filters.Search) + "%"
-		query = query.Where("LOWER(name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ?", s, s, s)
+		query = query.Where("LOWER(name) LIKE ? OR LOWER(address) LIKE ?", s, s)
 	}
-	if filters.hasContact != nil {
-		if *filters.hasContact {
+	if filters.HasContact != nil {
+		if *filters.HasContact {
 			query = query.Where("contact_id IS NOT NULL")
 		} else {
 			query = query.Where("contact_id IS NULL")
 		}
+	}
+	if filters.ContactUserID != nil {
+		query = query.Where("contact_id = ?", *filters.ContactUserID)
 	}
 
 	// TODO: filter by Role, EntityID, HasRole using RoleParsed
@@ -206,7 +209,7 @@ func QueryVendors(filters VendorFilterParams) (PaginatedResponse[Vendor], error)
 	// Filters
 	if filters.Search != nil && *filters.Search != "" {
 		s := "%" + strings.ToLower(*filters.Search) + "%"
-		query = query.Where("LOWER(name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ?", s, s, s)
+		query = query.Where("LOWER(name) LIKE ? OR LOWER(address) LIKE ?", s, s)
 	}
 
 	// TODO: filter by Role, EntityID, HasRole using RoleParsed
@@ -264,12 +267,12 @@ func QueryVendors(filters VendorFilterParams) (PaginatedResponse[Vendor], error)
 
 func QueryDeliveries(filters DeliveryFilterParams) (PaginatedResponse[Delivery], error) {
 	var delivery []Delivery
-	query := db.Db.Model(&Delivery{}).Preload("Contact")
+	query := db.Db.Model(&Delivery{}).Preload("School")
 
 	// Filters
 	if filters.Search != nil && *filters.Search != "" {
 		s := "%" + strings.ToLower(*filters.Search) + "%"
-		query = query.Where("LOWER(name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ?", s, s, s)
+		query = query.Where("LOWER(notes) LIKE ? OR LOWER(contract) LIKE ? OR LOWER(box_type) LIKE ?", s, s, s)
 	}
 	if filters.scheduledFrom != nil {
 		query = query.Where("scheduled_from >= ?", *filters.scheduledFrom)
@@ -284,7 +287,7 @@ func QueryDeliveries(filters DeliveryFilterParams) (PaginatedResponse[Delivery],
 		query = query.Where("school_id = ?", *filters.schoolID)
 	}
 	if len(filters.packageType) > 0 {
-		query = query.Where("package_type IN ?", filters.packageType)
+		query = query.Where("box_type IN ?", filters.packageType)
 	}
 
 	// Total counts

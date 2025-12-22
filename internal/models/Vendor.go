@@ -7,9 +7,8 @@ import (
 )
 
 type Vendor struct {
-	gorm.Model // includes ID, CreatedAt, UpdatedAt, DeletedAt
-	ID         uint
-	Name       string
+	gorm.Model        // includes ID, CreatedAt, UpdatedAt, DeletedAt
+	Name       string `gorm:"unique"`
 	Address    string
 	Coordinate Coordinate `gorm:"embedded"`
 
