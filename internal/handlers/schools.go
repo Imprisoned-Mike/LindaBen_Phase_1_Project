@@ -1,4 +1,4 @@
-package api
+package handlers
 
 import (
 	"LindaBen_Phase_1_Project/internal/db"
@@ -11,10 +11,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// get all vendors
-func GetVendors(c *gin.Context) {
-	// Bind query parameters into VendorFilterParams
-	var filters models.VendorFilterParams
+// get all schools
+func GetSchools(c *gin.Context) {
+	// Bind query parameters into SchoolFilterParams
+	var filters models.SchoolFilterParams
 	if err := c.ShouldBindQuery(&filters); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -41,7 +41,7 @@ func GetVendors(c *gin.Context) {
 	}
 
 	// Call QueryUsers with correct struct
-	response, err := models.QueryVendors(filters)
+	response, err := models.QuerySchools(filters)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -51,30 +51,46 @@ func GetVendors(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// get vendor by id
-func GetVendor(context *gin.Context) {
+// get school by id
+func GetSchool(context *gin.Context) {
 	id, _ := strconv.Atoi(context.Param("id"))
-	var vendor models.Vendor
-	err := db.Db.Preload("Contact").First(&vendor, id).Error
-	if err != nil {
+
+	// Bind query params
+	var expand []string
+	if e := context.QueryArray("expand"); len(e) > 0 {
+		expand = e
+	}
+
+	var school models.School
+	query := db.Db.Model(&models.School{})
+
+	// Preload avatar if requested
+	for _, field := range expand {
+		if field == "contact" {
+			query = query.Preload("Contact")
+		}
+	}
+
+	// Get school by ID
+	if err := query.First(&school, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			context.AbortWithStatus(http.StatusNotFound)
 			return
 		}
-
-		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	context.JSON(http.StatusOK, vendor)
+
+	context.JSON(http.StatusOK, school)
 }
 
-// update vendor
-func UpdateVendor(c *gin.Context) {
+// update school
+func UpdateSchool(c *gin.Context) {
 	//var input models.Update
-	var vendor models.Vendor
+	var school models.School
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	err := models.GetVendorByID(&vendor, uint(id))
+	err := models.GetSchoolByID(&school, uint(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.AbortWithStatus(http.StatusNotFound)
@@ -84,20 +100,20 @@ func UpdateVendor(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.BindJSON(&vendor)
-	err = models.UpdateVendor(&vendor)
+	c.BindJSON(&school)
+	err = models.UpdateSchool(&school)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.JSON(http.StatusOK, vendor)
+	c.JSON(http.StatusOK, school)
 }
 
-func DeleteVendor(c *gin.Context) {
-	var vendor models.Vendor
+func DeleteSchool(c *gin.Context) {
+	var school models.School
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	err := models.GetVendorByID(&vendor, uint(id))
+	err := models.GetSchoolByID(&school, uint(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.AbortWithStatus(http.StatusNotFound)
@@ -107,30 +123,30 @@ func DeleteVendor(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	err = models.DeleteVendor(&vendor)
+	err = models.DeleteSchool(&school)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.JSON(http.StatusOK, vendor)
+	c.JSON(http.StatusOK, school)
 }
 
-func CreateVendor(c *gin.Context) {
-	var vendor models.Vendor
+func CreateSchool(c *gin.Context) {
+	var school models.School
 
-	if err := c.ShouldBindJSON(&vendor); err != nil {
+	if err := c.ShouldBindJSON(&school); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	if err := models.CreateVendor(&vendor); err != nil {
+	if err := models.CreateSchool(&school); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, vendor)
+	c.JSON(http.StatusCreated, school)
 }

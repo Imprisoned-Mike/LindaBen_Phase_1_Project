@@ -1,4 +1,4 @@
-package api
+package handlers
 
 import (
 	"LindaBen_Phase_1_Project/internal/models"

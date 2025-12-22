@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"LindaBen_Phase_1_Project/internal/db"
-	Login "LindaBen_Phase_1_Project/internal/login"
 	"LindaBen_Phase_1_Project/internal/models"
 	"LindaBen_Phase_1_Project/internal/util"
 	"errors"
@@ -25,7 +24,7 @@ import (
 
 // Register user
 func CreateUser(context *gin.Context) {
-	var input Login.Register
+	var input models.RegisterRequest
 
 	if err := context.ShouldBindJSON(&input); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -52,7 +51,7 @@ func CreateUser(context *gin.Context) {
 
 // User Login
 func UserLogin(context *gin.Context) {
-	var input Login.Login
+	var input models.LoginRequest
 
 	if err := context.ShouldBindJSON(&input); err != nil {
 		var errorMessage string
