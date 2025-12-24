@@ -5,13 +5,13 @@ import (
 )
 
 type School struct {
-	Model      // includes ID, CreatedAt, UpdatedAt
-	Name       string
-	Address    string
-	Coordinate Coordinate `gorm:"embedded"`
+	Model                 // includes ID, CreatedAt, UpdatedAt
+	Name       string     `json:"name"`
+	Address    string     `json:"address"`
+	Coordinate Coordinate `gorm:"embedded" json:"coordinate"`
 
-	ContactID *uint
-	Contact   *Users `gorm:"foreignKey:ContactID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to User
+	ContactID *uint  `json:"contactId"`
+	Contact   *Users `gorm:"foreignKey:ContactID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"contact"` //Belongs to User
 }
 
 // Get all Schools
