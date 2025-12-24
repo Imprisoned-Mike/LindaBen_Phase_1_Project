@@ -5,12 +5,12 @@ import (
 )
 
 type Vendor struct {
-	Model      // includes ID, CreatedAt, UpdatedAt
-	Name       string `gorm:"unique"`
-	Address    string
-	Coordinate Coordinate `gorm:"embedded"`
+	Model                 // includes ID, CreatedAt, UpdatedAt
+	Name       string     `gorm:"unique" json:"name"`
+	Address    string     `json:"address"`
+	Coordinate Coordinate `gorm:"embedded" json:"coordinate"`
 
-	Type string // "produce", "shelf_stable", "packaging"
+	Type string `json:"type"` // "produce", "shelf_stable", "packaging"
 
 	ContactID *uint
 	Contact   *Users `gorm:"foreignKey:ContactID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` //Belongs to User
