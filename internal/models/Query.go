@@ -277,6 +277,13 @@ func QueryDeliveries(filters DeliveryFilterParams) (PaginatedResponse[Delivery],
 	var delivery []Delivery
 	query := db.Db.Model(&Delivery{}).Preload("School")
 
+	// Expand
+	for _, field := range filters.Expand {
+		if field == "orders" {
+			query = query.Preload("Orders.Vendor")
+		}
+	}
+
 	// Filters
 	if filters.Search != nil && *filters.Search != "" {
 		s := "%" + strings.ToLower(*filters.Search) + "%"

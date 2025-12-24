@@ -13,13 +13,18 @@ import (
 
 // get all Deliveries
 func GetDeliveries(context *gin.Context) {
-	var deliveries []models.Delivery
-	err := db.Db.Preload("Vendor").Preload("School").Preload("Orders").Find(&deliveries).Error
-	if err != nil {
-		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+	var filters models.DeliveryFilterParams
+	if err := context.ShouldBindQuery(&filters); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	context.JSON(http.StatusOK, deliveries)
+
+	response, err := models.QueryDeliveries(filters)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	context.JSON(http.StatusOK, response)
 }
 
 // get delivery by id
