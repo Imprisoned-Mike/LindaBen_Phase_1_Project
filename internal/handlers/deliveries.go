@@ -37,9 +37,10 @@ func GetDelivery(context *gin.Context) {
 
 	// Preload associated data if requested
 	for _, field := range expand {
-		if field == "School" {
+		switch field {
+		case "School":
 			query = query.Preload("School")
-		} else if field == "order" {
+		case "order":
 			query = query.Preload("Orders.Vendor")
 		}
 	}

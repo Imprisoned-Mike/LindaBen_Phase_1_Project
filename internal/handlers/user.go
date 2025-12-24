@@ -22,7 +22,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Register user
+// Create user
 func CreateUser(context *gin.Context) {
 	var input models.RegisterRequest
 
@@ -45,7 +45,7 @@ func CreateUser(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusCreated, gin.H{"user": savedUser})
+	context.JSON(http.StatusCreated, savedUser)
 
 }
 
