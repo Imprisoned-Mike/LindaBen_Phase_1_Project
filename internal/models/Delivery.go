@@ -11,19 +11,19 @@ type Delivery struct {
 	Model
 
 	// One‐to‐many
-	Orders []Order `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Orders []Order `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"orders"`
 
-	Contract string // hold, completed
+	Contract string `json:"contract"` // hold, completed
 
-	BoxType       string // standard, premium, standard-holiday, premium-holiday
+	BoxType       string `json:"packageType"` // standard, premium, standard-holiday, premium-holiday
 	ScheduledFrom time.Time
-	ScheduledTo   time.Time
+	ScheduledTo   time.Time `json:"scheduledAt"`
 
 	// Belongs-to: School
-	SchoolID *uint
-	School   *School `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	SchoolID *uint   `json:"schoolId"`
+	School   *School `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"school"`
 
-	Notes string
+	Notes string `json:"notes"`
 }
 
 // Get all Deliveries
