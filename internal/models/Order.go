@@ -18,7 +18,7 @@ type Order struct {
 
 	DeliveryID uint
 
-	VendorID *uint  `json:"vendorId"`
+	VendorID *int  `json:"vendorId"`
 	Vendor   Vendor `json:"vendor"`
 
 	IsInternal bool `json:"isInternal"` // Use later in fetch api to differentiate between internal and external orders
