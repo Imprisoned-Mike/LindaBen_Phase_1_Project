@@ -46,6 +46,18 @@ func GetDeliveryByID(Delivery *Delivery, id uint) (err error) {
 
 // Create Delivery
 func CreateDelivery(Delivery *Delivery) (err error) {
+	// Sanitize Orders
+	for i := range Delivery.Orders {
+		// Reset ID if negative (temporary frontend ID)
+		if Delivery.Orders[i].ID < 0 {
+			Delivery.Orders[i].ID = 0
+		}
+		// Handle internal vendor ID placeholder
+		if Delivery.Orders[i].VendorID != nil && *Delivery.Orders[i].VendorID == -1 {
+			Delivery.Orders[i].VendorID = nil
+		}
+	}
+
 	err = db.Db.Create(Delivery).Error
 	if err != nil {
 		return err
