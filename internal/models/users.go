@@ -69,7 +69,7 @@ func (user *Users) ValidateUserPassword(password string) error {
 
 // Get user by id
 func GetUser(Users *Users, id int) (err error) {
-	err = db.Db.Where("id = ?", id).First(Users).Error
+	err = db.Db.Preload("Avatar").Where("id = ?", id).First(Users).Error
 	if err != nil {
 		return err
 	}
