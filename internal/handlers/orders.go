@@ -11,6 +11,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// RegisterOrderRoutes registers order routes
+func RegisterOrderRoutes(r *gin.RouterGroup) {
+	r.GET("/:id", GetOrderByID)
+	r.PUT("/:id", UpdateOrder)
+	r.DELETE("/:id", DeleteOrder)
+}
+
 // get order by id
 func GetOrderByID(context *gin.Context) {
 	id, _ := strconv.Atoi(context.Param("id"))

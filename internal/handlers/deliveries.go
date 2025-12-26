@@ -11,6 +11,17 @@ import (
 	"gorm.io/gorm"
 )
 
+// RegisterDeliveryRoutes registers delivery routes
+func RegisterDeliveryRoutes(r *gin.RouterGroup) {
+	r.GET("", GetDeliveries)
+	r.GET("/:id", GetDelivery)
+	r.POST("", CreateDelivery)
+	r.PUT("/:id", UpdateDelivery)
+	r.DELETE("/:id", DeleteDelivery)
+	r.POST("/:delivery_id/orders", AddOrderToDelivery)
+	r.DELETE("/:id/orders/:order_id", RemoveOrderFromDelivery)
+}
+
 // get all Deliveries
 func GetDeliveries(context *gin.Context) {
 	var filters models.DeliveryFilterParams

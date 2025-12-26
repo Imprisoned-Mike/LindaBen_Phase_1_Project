@@ -15,7 +15,7 @@ func JWTAuthAdmin() gin.HandlerFunc {
 			context.Abort()
 			return
 		}
-		err = ValidateAdminRoleJWT(context)
+		err = ValidateRoleJWT(context, "admin")
 		if err != nil {
 			context.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: Admin role required"})
 			context.Abort()
@@ -34,7 +34,7 @@ func JWTAuthSchool() gin.HandlerFunc {
 			context.Abort()
 			return
 		}
-		err = ValidateSchoolAdminRoleJWT(context)
+		err = ValidateRoleJWT(context, "school_admin", "admin")
 		if err != nil {
 			context.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: School admin or admin role required"})
 			context.Abort()
@@ -53,7 +53,7 @@ func JWTAuthVendor() gin.HandlerFunc {
 			context.Abort()
 			return
 		}
-		err = ValidateVendorAdminRoleJWT(context)
+		err = ValidateRoleJWT(context, "vendor_admin", "admin")
 		if err != nil {
 			context.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: Vendor admin or admin role required"})
 			context.Abort()
