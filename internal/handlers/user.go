@@ -291,7 +291,7 @@ func UploadUserAvatar(c *gin.Context) {
 		return
 	}
 
-	fileHeader, err := c.FormFile("avatar")
+	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Avatar file is required"})
 		return
