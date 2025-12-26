@@ -6,7 +6,7 @@ import (
 
 type School struct {
 	Model                 // includes ID, CreatedAt, UpdatedAt
-	Name       string     `json:"name"`
+	Name       string     `gorm:"unique" json:"name"`
 	Address    string     `json:"address"`
 	Coordinate Coordinate `gorm:"embedded" json:"coordinate"`
 
