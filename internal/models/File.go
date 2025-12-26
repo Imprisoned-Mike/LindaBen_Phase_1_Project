@@ -2,11 +2,15 @@ package models
 
 import (
 	"LindaBen_Phase_1_Project/internal/db"
+
+	"gorm.io/gorm"
 )
 
 type File struct {
 	Model
-	Url string
+	// Path is internal
+	Path string `json:"-" gorm:"not null"`
+	Url  string `json:"url" gorm:"-"`
 }
 
 // Save File details
@@ -17,3 +21,8 @@ func (file *File) Save() (*File, error) {
 	return file, nil
 }
 
+// Hook that Generate URL for file
+func (file *File) AfterFind(tx *gorm.DB) (err error) {
+	file.Url = "/uploads/" + file.Path
+	return
+}

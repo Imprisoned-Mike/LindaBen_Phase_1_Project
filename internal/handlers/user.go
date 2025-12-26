@@ -22,6 +22,58 @@ import (
 	"gorm.io/gorm"
 )
 
+// RegisterAuthRoutes registers authentication routes
+func RegisterAuthRoutes(r *gin.RouterGroup) {
+	r.POST("/login", UserLogin)
+	r.POST("/logout", UserLogout)
+	r.GET("/me", GetCurrentUser)
+	r.POST("/impersonate", util.JWTAuthAdmin(), ImpersonateUser)
+}
+
+// RegisterUserRoutes registers user management routes
+func RegisterUserRoutes(r *gin.RouterGroup) {
+	r.GET("", GetUsers)
+	r.GET("/:id", GetUser)
+	r.POST("/:id/avatar", UploadUserAvatar)
+	r.POST("", CreateUser)
+	r.PUT("/:id", UpdateUser)
+	r.DELETE("/:id", DeleteUser)
+}
+
+// ImpersonateUser allows an admin to get a token for another user
+func ImpersonateUser(context *gin.Context) {
+	var input struct {
+		UserID int `json:"user_id" binding:"required"`
+	}
+
+	if err := context.ShouldBindJSON(&input); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var user models.Users
+	err := models.GetUser(&user, input.UserID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			context.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	tokenString, err := util.GenerateAccessToken(user)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	context.JSON(http.StatusOK, models.LoginResponse{
+		Token: tokenString,
+		User:  user,
+	})
+}
+
 // Create user
 func CreateUser(context *gin.Context) {
 	var input models.RegisterRequest
@@ -91,6 +143,16 @@ func UserLogin(context *gin.Context) {
 		Token: tokenString,
 		User:  user,
 	})
+}
+
+// Current user
+func GetCurrentUser(c *gin.Context) {
+	user := util.CurrentUser(c)
+	if user == nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	c.JSON(http.StatusOK, user)
 }
 
 // get all users
@@ -276,7 +338,7 @@ func CreateFileFromUpload(fileHeader *multipart.FileHeader) (*models.File, error
 	}
 
 	file := &models.File{
-		Url: "/" + path,
+		Path: path,
 	}
 
 	return file.Save()

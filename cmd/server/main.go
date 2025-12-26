@@ -47,58 +47,22 @@ func main() {
 	})
 
 	auth := r.Group("/api/auth")
-	{
-		auth.POST("/login", handlers.UserLogin)
-		auth.POST("/logout", handlers.UserLogout)
-	}
+	handlers.RegisterAuthRoutes(auth)
 
 	user := r.Group("/api/users", util.JWTAuthAdmin())
-	{
-		user.GET("", handlers.GetUsers)
-		user.GET("/:id", handlers.GetUser)
-		user.POST("/:id/avatar", handlers.UploadUserAvatar)
-		user.POST("", handlers.CreateUser)
-		user.PUT("/:id", handlers.UpdateUser)
-		user.DELETE("/:id", handlers.DeleteUser)
-	}
+	handlers.RegisterUserRoutes(user)
 
 	school := r.Group("/api/schools", util.JWTAuthSchool())
-	{
-		school.GET("", handlers.GetSchools)
-		school.GET("/:id", handlers.GetSchool)
-		school.POST("", handlers.CreateSchool)
-		school.PUT("/:id", handlers.UpdateSchool)
-		school.DELETE("/:id", handlers.DeleteSchool)
-	}
+	handlers.RegisterSchoolRoutes(school)
 
 	vendor := r.Group("/api/vendors", util.JWTAuthVendor())
-	{
-		vendor.GET("", handlers.GetVendors)
-		vendor.GET("/:id", handlers.GetVendor)
-		vendor.POST("", handlers.CreateVendor)
-		vendor.PUT("/:id", handlers.UpdateVendor)
-		vendor.DELETE("/:id", handlers.DeleteVendor)
-	}
+	handlers.RegisterVendorRoutes(vendor)
 
 	deliveries := r.Group("/api/deliveries", util.JWTAuthSchool())
-	{
-		deliveries.GET("", handlers.GetDeliveries)
-		deliveries.GET("/:id", handlers.GetDelivery)
-		deliveries.POST("", handlers.CreateDelivery)
-		deliveries.PUT("/:id", handlers.UpdateDelivery)
-		deliveries.DELETE("/:id", handlers.DeleteDelivery)
-		deliveries.POST("/:delivery_id/orders", handlers.AddOrderToDelivery)
-		deliveries.DELETE("/:id/orders/:order_id", handlers.RemoveOrderFromDelivery)
-	}
+	handlers.RegisterDeliveryRoutes(deliveries)
 
 	order := r.Group("/api/orders", util.JWTAuthSchool())
-	{
-		order.GET("/:id", handlers.GetOrderByID)
-		order.PUT("/:id", handlers.UpdateOrder)
-		// order.GET("/:id/logs", handlers.GetOrderLogs) // WIP
-		order.DELETE("/:id", handlers.DeleteOrder)
-		// order.GET("items/search", handlers.SearchOrderItems) // WIP
-	}
+	handlers.RegisterOrderRoutes(order)
 
 	// Start server
 	port := os.Getenv("PORT")

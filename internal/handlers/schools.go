@@ -11,6 +11,15 @@ import (
 	"gorm.io/gorm"
 )
 
+// RegisterSchoolRoutes registers school routes
+func RegisterSchoolRoutes(r *gin.RouterGroup) {
+	r.GET("", GetSchools)
+	r.GET("/:id", GetSchool)
+	r.POST("", CreateSchool)
+	r.PUT("/:id", UpdateSchool)
+	r.DELETE("/:id", DeleteSchool)
+}
+
 // get all schools
 func GetSchools(c *gin.Context) {
 	// Bind query parameters into SchoolFilterParams

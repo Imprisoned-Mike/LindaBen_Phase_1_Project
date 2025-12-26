@@ -42,8 +42,8 @@ func ValidateJWT(context *gin.Context) error {
 	return errors.New("invalid token provided")
 }
 
-// validate Admin role
-func ValidateAdminRoleJWT(context *gin.Context) error {
+// validate Role
+func ValidateRoleJWT(context *gin.Context, allowedRoles ...string) error {
 	token, err := getToken(context)
 	if err != nil {
 		return err
@@ -58,68 +58,27 @@ func ValidateAdminRoleJWT(context *gin.Context) error {
 		return errors.New("role claim is missing or not a string")
 	}
 
-	if role == "admin" {
-		return nil
-	}
-	return errors.New("user is not an admin")
-}
-
-// validate School Admin role (or admin)
-func ValidateSchoolAdminRoleJWT(context *gin.Context) error {
-	token, err := getToken(context)
-	if err != nil {
-		return err
-	}
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		return errors.New("invalid token provided")
+	for _, allowedRole := range allowedRoles {
+		if role == allowedRole {
+			return nil
+		}
 	}
 
-	role, ok := claims["role"].(string)
-	if !ok {
-		return errors.New("role claim is missing or not a string")
-	}
-
-	if role == "school_admin" || role == "admin" {
-		return nil
-	}
-	return errors.New("user is not a school admin or admin")
-}
-
-// validate Vendor Admin role (or admin)
-func ValidateVendorAdminRoleJWT(context *gin.Context) error {
-	token, err := getToken(context)
-	if err != nil {
-		return err
-	}
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		return errors.New("invalid token provided")
-	}
-
-	role, ok := claims["role"].(string)
-	if !ok {
-		return errors.New("role claim is missing or not a string")
-	}
-
-	if role == "vendor_admin" || role == "admin" {
-		return nil
-	}
-	return errors.New("user is not a vendor admin or admin")
+	return errors.New("user does not have the required role")
 }
 
 // fetch user details from the token
-func CurrentUser(context *gin.Context) models.Users {
+func CurrentUser(context *gin.Context) *models.Users {
 	err := ValidateJWT(context)
 	if err != nil {
-		return models.Users{}
+		return nil
 	}
 	token, _ := getToken(context)
 	claims, _ := token.Claims.(jwt.MapClaims)
 	// Use "sub" (subject) claim for user ID, which is standard
 	userIdFloat, ok := claims["sub"].(float64)
 	if !ok {
-		return models.Users{}
+		return nil
 	}
 	userId := uint(userIdFloat)
 
@@ -127,9 +86,9 @@ func CurrentUser(context *gin.Context) models.Users {
 	// models.GetUser expects an int, so we cast
 	err = models.GetUser(&user, int(userId))
 	if err != nil {
-		return models.Users{}
+		return nil
 	}
-	return user
+	return &user
 }
 
 // check token validity

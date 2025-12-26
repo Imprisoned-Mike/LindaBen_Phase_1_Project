@@ -11,6 +11,15 @@ import (
 	"gorm.io/gorm"
 )
 
+// RegisterVendorRoutes registers vendor routes
+func RegisterVendorRoutes(r *gin.RouterGroup) {
+	r.GET("", GetVendors)
+	r.GET("/:id", GetVendor)
+	r.POST("", CreateVendor)
+	r.PUT("/:id", UpdateVendor)
+	r.DELETE("/:id", DeleteVendor)
+}
+
 // get all vendors
 func GetVendors(c *gin.Context) {
 	// Bind query parameters into VendorFilterParams
