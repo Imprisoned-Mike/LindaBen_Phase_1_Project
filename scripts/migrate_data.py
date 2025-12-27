@@ -4,7 +4,7 @@ import os
 
 # Configuration
 DATA_FILE = '/Users/nativeongfuel/LindaBen_Phase_1_Project/Migration/DATA'
-DB_FILE = 'lindaben_migration.db'
+DB_FILE = 'mydatabase.db'
 
 def setup_database(cursor):
     """Creates the necessary tables for the migration."""
