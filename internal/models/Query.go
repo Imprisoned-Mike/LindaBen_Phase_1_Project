@@ -45,11 +45,11 @@ type VendorFilterParams struct {
 
 type DeliveryFilterParams struct {
 	Search        *string  `form:"search"`
-	schoolID      *uint    `form:"schoolId"`
-	scheduledFrom *string  `form:"scheduledFrom"`
-	scheduledTo   *string  `form:"scheduledTo"`
-	contract      *string  `form:"contract"`
-	packageType   []string `form:"types"`
+	SchoolID      *uint    `form:"schoolId"`
+	ScheduledFrom *string  `form:"scheduledFrom"`
+	ScheduledTo   *string  `form:"scheduledTo"`
+	Contract      *string  `form:"contract"`
+	PackageType   []string `form:"packageType"`
 	Status        []string `form:"status"`
 	Page          *int     `form:"page"`
 	PageSize      *int     `form:"pageSize"`
@@ -289,20 +289,20 @@ func QueryDeliveries(filters DeliveryFilterParams) (PaginatedResponse[Delivery],
 		s := "%" + strings.ToLower(*filters.Search) + "%"
 		query = query.Where("LOWER(notes) LIKE ? OR LOWER(contract) LIKE ? OR LOWER(box_type) LIKE ?", s, s, s)
 	}
-	if filters.scheduledFrom != nil {
-		query = query.Where("scheduled_from >= ?", *filters.scheduledFrom)
+	if filters.ScheduledFrom != nil {
+		query = query.Where("scheduled_to >= ?", *filters.ScheduledFrom)
 	}
-	if filters.scheduledTo != nil {
-		query = query.Where("scheduled_to <= ?", *filters.scheduledTo)
+	if filters.ScheduledTo != nil {
+		query = query.Where("scheduled_to <= ?", *filters.ScheduledTo)
 	}
-	if filters.contract != nil {
-		query = query.Where("contract = ?", *filters.contract)
+	if filters.Contract != nil {
+		query = query.Where("contract = ?", *filters.Contract)
 	}
-	if filters.schoolID != nil {
-		query = query.Where("school_id = ?", *filters.schoolID)
+	if filters.SchoolID != nil {
+		query = query.Where("school_id = ?", *filters.SchoolID)
 	}
-	if len(filters.packageType) > 0 {
-		query = query.Where("box_type IN ?", filters.packageType)
+	if len(filters.PackageType) > 0 {
+		query = query.Where("box_type IN ?", filters.PackageType)
 	}
 
 	// Total counts
