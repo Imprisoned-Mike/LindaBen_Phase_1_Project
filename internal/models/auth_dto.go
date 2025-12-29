@@ -5,7 +5,7 @@ type RegisterRequest struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Phone    string `json:"phone" binding:"required"`
-	Roles    string
+	Roles    string `json:"roles" binding:"required"`
 }
 
 type LoginRequest struct {
