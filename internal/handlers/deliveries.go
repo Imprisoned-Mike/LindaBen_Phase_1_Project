@@ -31,7 +31,7 @@ func GetDeliveries(context *gin.Context) {
 	}
 
 	// Always preload orders
-	filters.Expand = append(filters.Expand, "orders")
+	filters.Expand = append(filters.Expand, "order")
 
 	response, err := models.QueryDeliveries(filters)
 	if err != nil {
