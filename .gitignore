@@ -7,3 +7,6 @@
 *.db
 
 /tmp
+
+# Migration data file
+/Migration/DATA

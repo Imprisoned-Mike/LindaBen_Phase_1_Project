@@ -32,6 +32,7 @@ def setup_database(cursor):
             vendor_id INTEGER,
             is_internal BOOLEAN,
             status TEXT,
+            completed_at DATETIME,
             FOREIGN KEY(delivery_id) REFERENCES deliveries(id)
         )
     ''')
@@ -103,15 +104,16 @@ def insert_delivery(cursor, data):
             vendor_id = None
 
         cursor.execute('''
-            INSERT INTO orders (delivery_id, item, quantity, vendor_id, is_internal, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            INSERT INTO orders (delivery_id, item, quantity, vendor_id, is_internal, status, completed_at, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         ''', (
             delivery_id,
             order.get('item'),
             order.get('quantity'),
             vendor_id,
             order.get('isInternal'),
-            order.get('status')
+            order.get('status'),
+            order.get('completedAt')
         ))
 
 if __name__ == "__main__":

@@ -86,6 +86,7 @@ func CreateUser(context *gin.Context) {
 	user := models.Users{
 		Name:     input.Name,
 		Email:    input.Email,
+		Phone:    input.Phone,
 		Password: input.Password,
 		Roles:    input.Roles,
 	}

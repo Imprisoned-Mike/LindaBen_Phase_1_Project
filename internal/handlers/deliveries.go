@@ -30,6 +30,9 @@ func GetDeliveries(context *gin.Context) {
 		return
 	}
 
+	// Always preload orders
+	filters.Expand = append(filters.Expand, "orders")
+
 	response, err := models.QueryDeliveries(filters)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

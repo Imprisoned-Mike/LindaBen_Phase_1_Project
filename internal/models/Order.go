@@ -10,21 +10,20 @@ type Order struct {
 	Model
 	Item     string  `json:"item"`
 	Quantity int     `json:"quantity"`
-	Unit     string  // "Kg", "L", "", etc.
 	UnitCost float64 `json:"unitPrice"`
 
-	PackingTime  *time.Time
-	PurchaseTime *time.Time
+	PackingTime  *time.Time `json:"packingTime"`
+	PurchaseTime *time.Time `json:"purchaseTime"`
 
 	DeliveryID uint
 
-	VendorID *int  `json:"vendorId"`
+	VendorID *int   `json:"vendorId"`
 	Vendor   Vendor `json:"vendor"`
 
 	IsInternal bool `json:"isInternal"` // Use later in fetch api to differentiate between internal and external orders
 
-	Status      string `json:"status"` // "Pending", "Confirmed", "Completed", "Cancelled"
-	CompletedAt *time.Time
+	Status      string     `json:"status"` // "Pending", "Confirmed", "Completed", "Cancelled"
+	CompletedAt *time.Time `json:"completedAt"`
 
 	Notes string `json:"notes"`
 }
