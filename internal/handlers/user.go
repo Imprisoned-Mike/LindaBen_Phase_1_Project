@@ -43,7 +43,7 @@ func RegisterUserRoutes(r *gin.RouterGroup) {
 // ImpersonateUser allows an admin to get a token for another user
 func ImpersonateUser(context *gin.Context) {
 	var input struct {
-		UserID int `json:"user_id" binding:"required"`
+		UserID int `json:"User_Id" binding:"required"`
 	}
 
 	if err := context.ShouldBindJSON(&input); err != nil {
