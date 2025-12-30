@@ -18,7 +18,7 @@ jobs:
         go-version: "1.22"
 
     - name: Build binary
-      run: go build -o app ./cmd/server/main.go
+      run: go build -o app ./main.go
 
     - name: Copy binary to EC2
       uses: appleboy/scp-action@v0.1.7
