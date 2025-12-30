@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Connect to SQLite DB
-	database := db.InitDb("mydatabase.db") // SQLite file is handled in db package
+	database := db.InitDb("./mydatabase.db") // SQLite file is handled in db package
 	if database == nil {
 		log.Fatal("Failed to connect to database")
 	}
@@ -82,10 +82,7 @@ func seedData() {
 		return
 	}
 
-	var users = []models.Users{{Name: os.Getenv("ADMIN_USERNAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), Roles: "admin"},
-		{Name: os.Getenv("SCHOOL_USERNAME"), Email: os.Getenv("SCHOOL_EMAIL"), Password: os.Getenv("SCHOOL_PASSWORD"), Roles: "school_admin"},
-		{Name: os.Getenv("VENDOR_USERNAME"), Email: os.Getenv("VENDOR_EMAIL"), Password: os.Getenv("VENDOR_PASSWORD"), Roles: "vendor_admin"},
-	}
+	var users = []models.Users{{Name: os.Getenv("ADMIN_USERNAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), Roles: "admin"}}
 
 	for _, u := range users {
 		log.Printf("Seeding user: %s with email: %s and roles: %s", u.Name, u.Email, u.Roles)

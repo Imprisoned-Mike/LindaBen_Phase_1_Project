@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 )
 
 type UserFilterParams struct {
@@ -48,7 +49,7 @@ type DeliveryFilterParams struct {
 	SchoolID      *uint    `form:"schoolId"`
 	ScheduledFrom *string  `form:"scheduledFrom"`
 	ScheduledTo   *string  `form:"scheduledTo"`
-	Contract      *string  `form:"contract"`
+	Contract      []string `form:"contract"`
 	PackageType   []string `form:"packageType"`
 	Status        []string `form:"status"`
 	Page          *int     `form:"page"`
@@ -279,7 +280,7 @@ func QueryDeliveries(filters DeliveryFilterParams) (PaginatedResponse[Delivery],
 
 	// Expand
 	for _, field := range filters.Expand {
-		if field == "orders" {
+		if field == "orders" || strings.HasPrefix(field, "orders.") {
 			query = query.Preload("Orders.Vendor")
 		}
 	}
@@ -287,22 +288,59 @@ func QueryDeliveries(filters DeliveryFilterParams) (PaginatedResponse[Delivery],
 	// Filters
 	if filters.Search != nil && *filters.Search != "" {
 		s := "%" + strings.ToLower(*filters.Search) + "%"
-		query = query.Where("LOWER(notes) LIKE ? OR LOWER(contract) LIKE ? OR LOWER(box_type) LIKE ?", s, s, s)
+		query = query.Joins("LEFT JOIN schools ON schools.id = deliveries.school_id")
+		query = query.Where("LOWER(deliveries.notes) LIKE ? OR LOWER(schools.name) LIKE ?", s, s)
 	}
-	if filters.ScheduledFrom != nil {
-		query = query.Where("scheduled_to >= ?", *filters.ScheduledFrom)
+	if filters.ScheduledFrom != nil && *filters.ScheduledFrom != "" {
+		from, err := time.Parse(time.RFC3339, *filters.ScheduledFrom)
+		if err != nil {
+			from, err = time.Parse("2006-01-02", *filters.ScheduledFrom)
+			if err != nil {
+				return PaginatedResponse[Delivery]{}, fmt.Errorf("invalid scheduledFrom: %w", err)
+			}
+		}
+		query = query.Where("deliveries.scheduled_at >= ?", from)
 	}
-	if filters.ScheduledTo != nil {
-		query = query.Where("scheduled_to <= ?", *filters.ScheduledTo)
+	if filters.ScheduledTo != nil && *filters.ScheduledTo != "" {
+		to, err := time.Parse(time.RFC3339, *filters.ScheduledTo)
+		if err != nil {
+			to, err = time.Parse("2006-01-02", *filters.ScheduledTo)
+			if err != nil {
+				return PaginatedResponse[Delivery]{}, fmt.Errorf("invalid scheduledTo: %w", err)
+			}
+		}
+		query = query.Where("deliveries.scheduled_at <= ?", to)
 	}
-	if filters.Contract != nil {
-		query = query.Where("contract = ?", *filters.Contract)
+	if len(filters.Contract) > 0 {
+		query = query.Where("deliveries.contract IN ?", filters.Contract)
 	}
 	if filters.SchoolID != nil {
-		query = query.Where("school_id = ?", *filters.SchoolID)
+		query = query.Where("deliveries.school_id = ?", *filters.SchoolID)
 	}
 	if len(filters.PackageType) > 0 {
-		query = query.Where("box_type IN ?", filters.PackageType)
+		query = query.Where("deliveries.package_type IN ?", filters.PackageType)
+	}
+	if len(filters.Status) > 0 {
+		var parts []string
+		for _, st := range filters.Status {
+			s := strings.ToLower(strings.TrimSpace(st))
+			if s == "" {
+				continue
+			}
+			switch s {
+			case "pending":
+				parts = append(parts, "EXISTS (SELECT 1 FROM orders WHERE orders.delivery_id = deliveries.id AND LOWER(orders.status) = 'pending')")
+			case "confirmed":
+				parts = append(parts, "NOT EXISTS (SELECT 1 FROM orders WHERE orders.delivery_id = deliveries.id AND LOWER(orders.status) = 'pending') AND EXISTS (SELECT 1 FROM orders WHERE orders.delivery_id = deliveries.id AND LOWER(orders.status) = 'confirmed')")
+			case "completed":
+				parts = append(parts, "NOT EXISTS (SELECT 1 FROM orders WHERE orders.delivery_id = deliveries.id AND LOWER(orders.status) IN ('pending','confirmed')) AND EXISTS (SELECT 1 FROM orders WHERE orders.delivery_id = deliveries.id AND LOWER(orders.status) = 'completed')")
+			case "cancelled":
+				parts = append(parts, "NOT EXISTS (SELECT 1 FROM orders WHERE orders.delivery_id = deliveries.id AND LOWER(orders.status) IN ('pending','confirmed','completed')) AND EXISTS (SELECT 1 FROM orders WHERE orders.delivery_id = deliveries.id AND LOWER(orders.status) = 'cancelled')")
+			}
+		}
+		if len(parts) > 0 {
+			query = query.Where("(" + strings.Join(parts, " OR ") + ") AND deliveries.contract != 'hold'")
+		}
 	}
 
 	// Total counts
@@ -324,13 +362,27 @@ func QueryDeliveries(filters DeliveryFilterParams) (PaginatedResponse[Delivery],
 	query = query.Offset(offset).Limit(pageSize)
 
 	// Sorting
-	sortBy := "id"
+	sortBy := "deliveries.id"
 	sortOrder := "asc"
 	if filters.SortBy != nil {
-		sortBy = *filters.SortBy
+		switch *filters.SortBy {
+		case "scheduledAt":
+			sortBy = "deliveries.scheduled_to"
+		case "packageType":
+			sortBy = "deliveries.box_type"
+		case "notes":
+			sortBy = "deliveries.notes"
+		case "contract":
+			sortBy = "deliveries.contract"
+		case "schoolId":
+			sortBy = "deliveries.school_id"
+		}
 	}
 	if filters.SortOrder != nil {
-		sortOrder = *filters.SortOrder
+		o := strings.ToLower(*filters.SortOrder)
+		if o == "asc" || o == "desc" {
+			sortOrder = o
+		}
 	}
 	query = query.Order(fmt.Sprintf("%s %s", sortBy, sortOrder))
 

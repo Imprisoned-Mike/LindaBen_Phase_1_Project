@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -30,8 +31,22 @@ func GetDeliveries(context *gin.Context) {
 		return
 	}
 
-	// Always preload orders
-	filters.Expand = append(filters.Expand, "order")
+	// Normalize list params (expects repeated query keys, not comma-separated) and always preload orders
+	normalize := func(vals []string) []string {
+		var out []string
+		for _, v := range vals {
+			v = strings.TrimSpace(v)
+			if v != "" {
+				out = append(out, v)
+			}
+		}
+		return out
+	}
+	filters.Expand = normalize(filters.Expand)
+	filters.Contract = normalize(filters.Contract)
+	filters.PackageType = normalize(filters.PackageType)
+	filters.Status = normalize(filters.Status)
+	filters.Expand = append(filters.Expand, "orders")
 
 	response, err := models.QueryDeliveries(filters)
 	if err != nil {

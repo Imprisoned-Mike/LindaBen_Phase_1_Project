@@ -15,9 +15,8 @@ type Delivery struct {
 
 	Contract string `json:"contract"` // hold, completed
 
-	BoxType       string `json:"packageType"` // standard, premium, standard-holiday, premium-holiday
-	ScheduledFrom time.Time
-	ScheduledTo   time.Time `json:"scheduledAt"`
+	PackageType string     `json:"packageType"` // standard, premium, standard-holiday, premium-holiday
+	ScheduledAt *time.Time `json:"scheduledAt"`
 
 	// Belongs-to: School
 	SchoolID *uint   `json:"schoolId"`
