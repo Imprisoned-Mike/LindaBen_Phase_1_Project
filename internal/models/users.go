@@ -78,7 +78,7 @@ func GetUser(Users *Users, id int) (err error) {
 
 // Update user
 func UpdateUser(Users *Users) (err error) {
-	err = db.Db.Omit("password").Updates(Users).Error
+	err = db.Db.Updates(Users).Error
 	if err != nil {
 		return err
 	}
