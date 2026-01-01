@@ -1,41 +1,34 @@
 package models
 
 import (
-	"LindaBen_Phase_1_Project/internal/db"
 	"strconv"
+	"strings"
 )
 
 type RoleParsed struct {
-	Role     string //admin, school_admin, vendor_admin, user
-	EntityID *string
+	Role     string //admin, school_admin, vendor_admin
+	EntityID *uint
 }
 
-func ParseRole(user Users) RoleParsed {
-	var entityId *string
+func ParseRoles(roles string) []RoleParsed {
+	var parsedRoles []RoleParsed
 
-	switch user.Roles {
-	case "school_admin":
-		var school School
+	for role := range strings.SplitSeq(roles, ",") {
+		if strings.Contains(role, ":") {
+			eid := strings.SplitN(role, ":", 2)[1]
+			eidParsed, _ := strconv.Atoi(eid)
+			eidParsedUint := uint(eidParsed)
 
-		err := db.Db.Where("contact_id = ?", user.ID).First(&school).Error
-		if err == nil {
-			idStr := strconv.Itoa(int(school.ID))
-			entityId = &idStr
-		}
-	case "vendor_admin":
-		var vendor Vendor
-
-		err := db.Db.Where("contact_id = ?", user.ID).First(&vendor).Error
-		if err == nil {
-			idStr := strconv.Itoa(int(vendor.ID))
-			entityId = &idStr
+			parsedRoles = append(parsedRoles, RoleParsed{
+				Role:     strings.SplitN(role, ":", 2)[0],
+				EntityID: &eidParsedUint,
+			})
+		} else {
+			parsedRoles = append(parsedRoles, RoleParsed{
+				Role:     role,
+				EntityID: nil,
+			})
 		}
 	}
-
-	return RoleParsed{
-		Role:     user.Roles,
-		EntityID: entityId,
-	}
+	return parsedRoles
 }
-
-//repeat for admin, vendor_admin, user

@@ -3,8 +3,10 @@ package handlers
 import (
 	"LindaBen_Phase_1_Project/internal/db"
 	"LindaBen_Phase_1_Project/internal/models"
+	"LindaBen_Phase_1_Project/internal/util"
 	"errors"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,7 +16,7 @@ import (
 
 // RegisterDeliveryRoutes registers delivery routes
 func RegisterDeliveryRoutes(r *gin.RouterGroup) {
-	r.GET("", GetDeliveries)
+	r.GET("", util.JWTAuth("admin", "school_admin", "vendor_admin"), GetDeliveries)
 	r.GET("/:id", GetDelivery)
 	r.POST("", CreateDelivery)
 	r.PUT("/:id", UpdateDelivery)
@@ -48,11 +50,55 @@ func GetDeliveries(context *gin.Context) {
 	filters.Status = normalize(filters.Status)
 	filters.Expand = append(filters.Expand, "orders")
 
+	// Check if is not admin, but school admin
+	user := util.CurrentUser(context)
+	userRoles := models.ParseRoles(user.Roles)
+
+	adminRoleIdx := slices.IndexFunc(userRoles, func(r models.RoleParsed) bool {
+		return r.Role == "admin"
+	})
+	vendorAdminRoleIdx := slices.IndexFunc(userRoles, func(r models.RoleParsed) bool {
+		return r.Role == "vendor_admin"
+	})
+	schoolAdminRoleIdx := slices.IndexFunc(userRoles, func(r models.RoleParsed) bool {
+		return r.Role == "school_admin"
+	})
+
+	if adminRoleIdx == -1 {
+		for _, role := range userRoles {
+			if role.Role == "school_admin" {
+				// Filter by school ID
+				filters.SchoolID = append(filters.SchoolID, *role.EntityID)
+			}
+		}
+	}
+
 	response, err := models.QueryDeliveries(filters)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Filter orders for vendor admins
+	if adminRoleIdx == -1 && schoolAdminRoleIdx == -1 && vendorAdminRoleIdx != -1 {
+		vendorIDs := []uint{}
+		for _, role := range userRoles {
+			if role.Role == "vendor_admin" {
+				vendorIDs = append(vendorIDs, *role.EntityID)
+			}
+		}
+
+		for _, delivery := range response.Data {
+			filteredOrders := []models.Order{}
+			for _, order := range delivery.Orders {
+				// Check if order's vendor ID is in the list of vendor IDs
+				if slices.Contains(vendorIDs, uint(*order.VendorID)) {
+					filteredOrders = append(filteredOrders, order)
+				}
+			}
+		}
+	}
+
 	context.JSON(http.StatusOK, response)
 }
 

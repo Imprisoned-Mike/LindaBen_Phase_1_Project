@@ -46,7 +46,7 @@ type VendorFilterParams struct {
 
 type DeliveryFilterParams struct {
 	Search        *string  `form:"search"`
-	SchoolID      *uint    `form:"schoolId"`
+	SchoolID      []uint   `form:"schoolId"`
 	ScheduledFrom *string  `form:"scheduledFrom"`
 	ScheduledTo   *string  `form:"scheduledTo"`
 	Contract      []string `form:"contract"`
@@ -314,8 +314,8 @@ func QueryDeliveries(filters DeliveryFilterParams) (PaginatedResponse[Delivery],
 	if len(filters.Contract) > 0 {
 		query = query.Where("deliveries.contract IN ?", filters.Contract)
 	}
-	if filters.SchoolID != nil {
-		query = query.Where("deliveries.school_id = ?", *filters.SchoolID)
+	if len(filters.SchoolID) > 0 {
+		query = query.Where("deliveries.school_id IN ?", filters.SchoolID)
 	}
 	if len(filters.PackageType) > 0 {
 		query = query.Where("deliveries.package_type IN ?", filters.PackageType)

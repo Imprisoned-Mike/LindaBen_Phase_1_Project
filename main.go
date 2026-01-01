@@ -49,19 +49,19 @@ func main() {
 	auth := r.Group("/api/auth")
 	handlers.RegisterAuthRoutes(auth)
 
-	user := r.Group("/api/users", util.JWTAuthAdmin())
+	user := r.Group("/api/users", util.JWTAuth("admin"))
 	handlers.RegisterUserRoutes(user)
 
-	school := r.Group("/api/schools", util.JWTAuthSchool())
+	school := r.Group("/api/schools")
 	handlers.RegisterSchoolRoutes(school)
 
-	vendor := r.Group("/api/vendors", util.JWTAuthVendor())
+	vendor := r.Group("/api/vendors")
 	handlers.RegisterVendorRoutes(vendor)
 
-	deliveries := r.Group("/api/deliveries", util.JWTAuthSchool())
+	deliveries := r.Group("/api/deliveries")
 	handlers.RegisterDeliveryRoutes(deliveries)
 
-	order := r.Group("/api/orders", util.JWTAuthSchool())
+	order := r.Group("/api/orders")
 	handlers.RegisterOrderRoutes(order)
 
 	// Start server

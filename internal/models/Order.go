@@ -16,9 +16,10 @@ type Order struct {
 	PurchaseTime *time.Time `json:"purchaseTime"`
 
 	DeliveryID uint
+	Delivery   Delivery `json:"delivery"`
 
-	VendorID *int   `json:"vendorId"`
-	Vendor   Vendor `json:"vendor"`
+	VendorID *int    `json:"vendorId"`
+	Vendor   *Vendor `json:"vendor"`
 
 	IsInternal bool `json:"isInternal"` // Use later in fetch api to differentiate between internal and external orders
 

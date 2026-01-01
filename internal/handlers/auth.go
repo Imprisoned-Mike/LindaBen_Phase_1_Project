@@ -17,7 +17,7 @@ func RegisterAuthRoutes(r *gin.RouterGroup) {
 	r.POST("/login", UserLogin)
 	r.POST("/logout", UserLogout)
 	r.GET("/me", GetCurrentUser)
-	r.POST("/impersonate", util.JWTAuthAdmin(), ImpersonateUser)
+	r.POST("/impersonate", util.JWTAuth("admin"), ImpersonateUser)
 }
 
 func UserLogout(c *gin.Context) {

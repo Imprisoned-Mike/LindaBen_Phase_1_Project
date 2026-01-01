@@ -3,7 +3,9 @@ package handlers
 import (
 	"LindaBen_Phase_1_Project/internal/db"
 	"LindaBen_Phase_1_Project/internal/models"
+	"LindaBen_Phase_1_Project/internal/util"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -14,15 +16,15 @@ import (
 // RegisterOrderRoutes registers order routes
 func RegisterOrderRoutes(r *gin.RouterGroup) {
 	r.GET("/:id", GetOrderByID)
-	r.PUT("/:id", UpdateOrder)
-	r.DELETE("/:id", DeleteOrder)
+	r.PUT("/:id", UpdateOrder, util.JWTAuth("admin"))
+	r.DELETE("/:id", DeleteOrder, util.JWTAuth("admin"))
 }
 
 // get order by id
 func GetOrderByID(context *gin.Context) {
 	id, _ := strconv.Atoi(context.Param("id"))
 	var order models.Order
-	err := db.Db.Preload("Vendor").First(&order, id).Error
+	err := db.Db.Preload("Delivery").Preload("Vendor").First(&order, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			context.AbortWithStatus(http.StatusNotFound)
@@ -32,6 +34,18 @@ func GetOrderByID(context *gin.Context) {
 		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
+
+	allowedRoles := []string{"admin", fmt.Sprintf("school_admin:%d", order.Delivery.SchoolID)}
+
+	if order.VendorID != nil {
+		allowedRoles = append(allowedRoles, fmt.Sprintf("vendor_admin:%d", *order.VendorID))
+	}
+
+	if err := util.ValidateRoleJWT(context, allowedRoles...); err != nil {
+		context.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
 	context.JSON(http.StatusOK, order)
 }
 

@@ -4,6 +4,7 @@ import (
 	"LindaBen_Phase_1_Project/internal/models"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -19,14 +20,33 @@ var privateKey = []byte(os.Getenv("JWT_PRIVATE_KEY"))
 // generate JWT token
 func GenerateAccessToken(user models.Users) (string, error) {
 	claims := jwt.MapClaims{
-		"sub":  user.ID, // subject (standard claim)
-		"role": user.Roles,
-		"iat":  time.Now().Unix(),
-		"exp":  time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 day token
+		"sub":   user.ID, // subject (standard claim)
+		"roles": user.Roles,
+		"iat":   time.Now().Unix(),
+		"exp":   time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 day token
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(privateKey)
+}
+
+// JWTAuth checks for a valid token with the "admin" role.
+func JWTAuth(allowedRoles ...string) gin.HandlerFunc {
+	return func(context *gin.Context) {
+		err := ValidateJWT(context)
+		if err != nil {
+			context.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+			context.Abort()
+			return
+		}
+		err = ValidateRoleJWT(context, allowedRoles...)
+		if err != nil {
+			context.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			context.Abort()
+			return
+		}
+		context.Next()
+	}
 }
 
 // validate JWT token
@@ -42,7 +62,7 @@ func ValidateJWT(context *gin.Context) error {
 	return errors.New("invalid token provided")
 }
 
-// validate Role
+// validate if user has one of the allowed roles
 func ValidateRoleJWT(context *gin.Context, allowedRoles ...string) error {
 	token, err := getToken(context)
 	if err != nil {
@@ -53,18 +73,21 @@ func ValidateRoleJWT(context *gin.Context, allowedRoles ...string) error {
 		return errors.New("invalid token provided")
 	}
 
-	role, ok := claims["role"].(string)
+	roles, ok := claims["roles"].(string)
 	if !ok {
 		return errors.New("role claim is missing or not a string")
 	}
 
+	rolesArray := models.ParseRoles(roles)
+	fmt.Println("User roles from token:", rolesArray)
+
 	for _, allowedRole := range allowedRoles {
-		if role == allowedRole {
+		if strings.Contains(roles, allowedRole) {
 			return nil
 		}
 	}
 
-	return errors.New("user does not have the required role")
+	return fmt.Errorf("access denied: requires one of the roles %v", allowedRoles)
 }
 
 // fetch user details from the token
@@ -94,7 +117,7 @@ func CurrentUser(context *gin.Context) *models.Users {
 // check token validity
 func getToken(context *gin.Context) (*jwt.Token, error) {
 	tokenString := getTokenFromRequest(context)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
