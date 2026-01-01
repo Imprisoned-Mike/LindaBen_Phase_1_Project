@@ -47,6 +47,7 @@ type VendorFilterParams struct {
 type DeliveryFilterParams struct {
 	Search        *string  `form:"search"`
 	SchoolID      []uint   `form:"schoolId"`
+	VendorID      []uint   `form:"vendorId"`
 	ScheduledFrom *string  `form:"scheduledFrom"`
 	ScheduledTo   *string  `form:"scheduledTo"`
 	Contract      []string `form:"contract"`
@@ -341,6 +342,13 @@ func QueryDeliveries(filters DeliveryFilterParams) (PaginatedResponse[Delivery],
 		if len(parts) > 0 {
 			query = query.Where("(" + strings.Join(parts, " OR ") + ") AND deliveries.contract != 'hold'")
 		}
+	}
+	if len(filters.VendorID) > 0 {
+		var parts []string
+		for _, vid := range filters.VendorID {
+			parts = append(parts, fmt.Sprintf("EXISTS (SELECT 1 FROM orders WHERE orders.delivery_id = deliveries.id AND orders.vendor_id = %d)", vid))
+		}
+		query = query.Where("(" + strings.Join(parts, " OR ") + ")")
 	}
 
 	// Total counts

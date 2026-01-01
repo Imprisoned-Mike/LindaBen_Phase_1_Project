@@ -5,6 +5,7 @@ import (
 	"LindaBen_Phase_1_Project/internal/models"
 	"LindaBen_Phase_1_Project/internal/util"
 	"errors"
+	"fmt"
 	"net/http"
 	"slices"
 	"strconv"
@@ -70,6 +71,10 @@ func GetDeliveries(context *gin.Context) {
 				// Filter by school ID
 				filters.SchoolID = append(filters.SchoolID, *role.EntityID)
 			}
+			if role.Role == "vendor_admin" {
+				// Filter by vendor ID
+				filters.VendorID = append(filters.VendorID, *role.EntityID)
+			}
 		}
 	}
 
@@ -88,14 +93,20 @@ func GetDeliveries(context *gin.Context) {
 			}
 		}
 
-		for _, delivery := range response.Data {
+		for i := range response.Data {
+			delivery := &response.Data[i]
+
 			filteredOrders := []models.Order{}
 			for _, order := range delivery.Orders {
 				// Check if order's vendor ID is in the list of vendor IDs
-				if slices.Contains(vendorIDs, uint(*order.VendorID)) {
+				if order.VendorID != nil && slices.Contains(vendorIDs, uint(*order.VendorID)) {
 					filteredOrders = append(filteredOrders, order)
+				} else {
+					fmt.Println("Excluding order ID:", order.ID, "with VendorID:", order.VendorID)
 				}
 			}
+
+			delivery.Orders = filteredOrders
 		}
 	}
 
