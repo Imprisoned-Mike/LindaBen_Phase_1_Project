@@ -30,9 +30,17 @@ func RegisterUserRoutes(r *gin.RouterGroup) {
 	r.DELETE("/:id", DeleteUser)
 }
 
+type RegisterRequest struct {
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Phone    string `json:"phone" binding:"required"`
+	Roles    string `json:"roles" binding:"required"`
+}
+
 // Create user
 func CreateUser(context *gin.Context) {
-	var input models.RegisterRequest
+	var input RegisterRequest
 
 	if err := context.ShouldBindJSON(&input); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

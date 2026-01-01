@@ -24,9 +24,14 @@ func UserLogout(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 // User Login
 func UserLogin(context *gin.Context) {
-	var input models.LoginRequest
+	var input LoginRequest
 
 	if err := context.ShouldBindJSON(&input); err != nil {
 		var errorMessage string
