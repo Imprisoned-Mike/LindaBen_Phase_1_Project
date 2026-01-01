@@ -1,10 +1,8 @@
 # The non-invasive data migration script
 
-import json
-
-import os
 import time
-from typing import Dict
+import asyncio
+from typing import Dict, List
 import httpx
 import re
 from datetime import datetime
@@ -15,6 +13,7 @@ DATA_FILE = "./DATA"
 API_BASE = "https://rx-api.harvey-l.com/api"
 
 transport = httpx.HTTPTransport(retries=3)
+async_transport = httpx.AsyncHTTPTransport(retries=3)
 
 
 def login(email, password):
@@ -47,43 +46,48 @@ def create_vendor(vendor):
     print(f"Created vendor with ID: {response.json()['id']}")
 
 
-def delete_delivery(delivery_id):
-    with httpx.Client(
-        headers={"Authorization": f"Bearer {token}"},
-        transport=transport,
-    ) as client:
-        response = client.delete(
-            f"{API_BASE}/deliveries/{delivery_id}",
-        )
+async def delete_delivery_async(
+    client: httpx.AsyncClient, delivery_id: int, sem: asyncio.Semaphore
+):
+    async with sem:
+        response = await client.delete(f"{API_BASE}/deliveries/{delivery_id}")
         response.raise_for_status()
         print(f"Deleted delivery with ID: {delivery_id}")
 
 
-def delete_all_deliveries():
-    with httpx.Client(
+async def delete_all_deliveries_parallel(concurrency: int = 20):
+    async with httpx.AsyncClient(
         headers={"Authorization": f"Bearer {token}"},
-        transport=transport,
+        transport=async_transport,
     ) as client:
-        response = client.get(
-            f"{API_BASE}/deliveries?pageSize=9999",
-        )
+        response = await client.get(f"{API_BASE}/deliveries?pageSize=9999")
         response.raise_for_status()
         deliveries = response.json()["data"]
-        for delivery in deliveries:
-            delete_delivery(delivery["id"])
 
-
-def create_delivery(delivery):
-    with httpx.Client(
-        headers={"Authorization": f"Bearer {token}"},
-        transport=transport,
-    ) as client:
-        response = client.post(
-            f"{API_BASE}/deliveries",
-            json=delivery,
+        sem = asyncio.Semaphore(concurrency)
+        await asyncio.gather(
+            *(delete_delivery_async(client, d["id"], sem) for d in deliveries)
         )
+
+
+async def create_delivery_async(
+    client: httpx.AsyncClient, delivery: Dict, sem: asyncio.Semaphore
+):
+    async with sem:
+        response = await client.post(f"{API_BASE}/deliveries", json=delivery)
         response.raise_for_status()
         print(f"Created delivery with ID: {response.json()['id']}")
+
+
+async def create_deliveries_parallel(deliveries: List[Dict], concurrency: int = 20):
+    async with httpx.AsyncClient(
+        headers={"Authorization": f"Bearer {token}"},
+        transport=async_transport,
+    ) as client:
+        sem = asyncio.Semaphore(concurrency)
+        await asyncio.gather(
+            *(create_delivery_async(client, d, sem) for d in deliveries)
+        )
 
 
 def parse_mappings(line: str) -> Dict[str, int]:
@@ -180,22 +184,34 @@ vendor_id_map = {
     for vendor_name, old_id in vendor_mappings.items()
 }
 
-delete_all_deliveries()
-
+deliveries_to_create = []
 for line in open(DATA_FILE).readlines():
     if line.startswith("create_delivery"):
-        delivery_data = eval(re.search(r"create_delivery\((.*)\)", line).group(1))
-
-        # Re-map
-        delivery_data["schoolId"] = school_id_map[delivery_data["schoolId"]]
-        for o in delivery_data["orders"]:
-            if o["vendorId"] != -1:
-                o["vendorId"] = vendor_id_map[o["vendorId"]]
+        delivery_data = eval(re.search(r"create_delivery\((.*)\)", line).group(1))  # pyright:ignore
 
         # Re-format time. TZ = EST
         dt_naive = datetime.fromisoformat(delivery_data["scheduledAt"])
         dt_eastern = dt_naive.replace(tzinfo=ZoneInfo("America/New_York"))
         delivery_data["scheduledAt"] = dt_eastern.isoformat()
 
-        print(delivery_data)
-        create_delivery(delivery_data)
+        is_past = dt_eastern < datetime.now(tz=ZoneInfo("America/New_York"))
+
+        # Re-map
+        delivery_data["schoolId"] = school_id_map[delivery_data["schoolId"]]
+        for o in delivery_data["orders"]:
+            if o["vendorId"] != -1:
+                o["vendorId"] = vendor_id_map[o["vendorId"]]
+            if is_past:
+                # Assume all past deliveries were delivered on time
+                o["status"] = "completed"
+                o["completedAt"] = dt_eastern.isoformat()
+
+        deliveries_to_create.append(delivery_data)
+
+
+async def migrate_deliveries():
+    await delete_all_deliveries_parallel()
+    await create_deliveries_parallel(deliveries_to_create)
+
+
+asyncio.run(migrate_deliveries())

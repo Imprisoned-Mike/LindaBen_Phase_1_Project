@@ -11,3 +11,4 @@
 
 # Migration data file
 DATA
+__pycache__/
