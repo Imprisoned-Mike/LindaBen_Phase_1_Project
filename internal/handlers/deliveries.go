@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -151,7 +152,6 @@ func GetDelivery(context *gin.Context) {
 
 // update delivery
 func UpdateDelivery(c *gin.Context) {
-	//var input models.Update
 	var delivery models.Delivery
 	id, _ := strconv.Atoi(c.Param("id"))
 
@@ -165,7 +165,75 @@ func UpdateDelivery(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.BindJSON(&delivery)
+
+	// Clone for comparison
+	oldDelivery := delivery
+
+	if err := c.BindJSON(&delivery); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Compare and Log
+	currentUser := util.CurrentUser(c)
+	var logs []models.DeliveryChangeLog
+	now := time.Now()
+
+	// Helper to add log
+	addLog := func(field, old, new string) {
+		logs = append(logs, models.DeliveryChangeLog{
+			DeliveryID:     uint(delivery.ID),
+			ChangeByUserID: uint(currentUser.ID),
+			ChangedAt:      now,
+			FieldName:      field,
+			OldValue:       old,
+			NewValue:       new,
+		})
+	}
+
+	if oldDelivery.Contract != delivery.Contract {
+		addLog("contract", oldDelivery.Contract, delivery.Contract)
+	}
+
+	if oldDelivery.PackageType != delivery.PackageType {
+		addLog("packageType", oldDelivery.PackageType, delivery.PackageType)
+	}
+
+	if oldDelivery.Notes != delivery.Notes {
+		addLog("notes", oldDelivery.Notes, delivery.Notes)
+	}
+
+	// ScheduledAt
+	oldTime := ""
+	newTime := ""
+	if oldDelivery.ScheduledAt != nil {
+		oldTime = oldDelivery.ScheduledAt.Format(time.RFC3339)
+	}
+	if delivery.ScheduledAt != nil {
+		newTime = delivery.ScheduledAt.Format(time.RFC3339)
+	}
+	if oldTime != newTime {
+		addLog("scheduledAt", oldTime, newTime)
+	}
+
+	// SchoolID
+	oldSchool := ""
+	newSchool := ""
+	if oldDelivery.SchoolID != nil {
+		oldSchool = fmt.Sprintf("%d", *oldDelivery.SchoolID)
+	}
+	if delivery.SchoolID != nil {
+		newSchool = fmt.Sprintf("%d", *delivery.SchoolID)
+	}
+	if oldSchool != newSchool {
+		addLog("schoolId", oldSchool, newSchool)
+	}
+
+	// Save Logs
+	if len(logs) > 0 {
+		db.Db.Create(&logs)
+	}
+
 	err = models.UpdateDelivery(&delivery)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})

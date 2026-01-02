@@ -6,11 +6,11 @@ import (
 
 type OrderChangeLog struct {
 	Model
-	OrderID        uint
-	ChangeByUserID uint
-	ChangedByUser  Users
-	ChangedAt      time.Time
-	FieldName      string //status, quantity, item, UnitPrice, Notes, isInternal, vendorID
-	OldVal         interface{}
-	NewVal         interface{}
+	OrderID        uint      `json:"orderId"`
+	ChangeByUserID uint      `json:"changeByUserId"`
+	ChangedByUser  Users     `gorm:"foreignKey:ChangeByUserID" json:"changedByUser"`
+	ChangedAt      time.Time `json:"changedAt"`
+	FieldName      string    `json:"fieldName"` // status, quantity, item, UnitPrice, Notes, isInternal, vendorID
+	OldValue       string    `json:"oldValue"`
+	NewValue       string    `json:"newValue"`
 }

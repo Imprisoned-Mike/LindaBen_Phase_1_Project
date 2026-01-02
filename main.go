@@ -64,6 +64,10 @@ func main() {
 	order := r.Group("/api/orders")
 	handlers.RegisterOrderRoutes(order)
 
+	// Register logs routes
+	deliveries.GET("/:id/logs", handlers.GetDeliveryLogs)
+	order.GET("/:id/logs", handlers.GetOrderLogs)
+
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -117,6 +121,8 @@ func loadDatabase() {
 	db.Db.AutoMigrate(&models.Vendor{})
 	db.Db.AutoMigrate(&models.Delivery{})
 	db.Db.AutoMigrate(&models.Order{})
+	db.Db.AutoMigrate(&models.DeliveryChangeLog{})
+	db.Db.AutoMigrate(&models.OrderChangeLog{})
 
 	seedData()
 }

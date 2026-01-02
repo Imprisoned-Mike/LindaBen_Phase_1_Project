@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -51,7 +52,6 @@ func GetOrderByID(context *gin.Context) {
 
 // update order
 func UpdateOrder(c *gin.Context) {
-	//var input models.Update
 	var order models.Order
 	id, _ := strconv.Atoi(c.Param("id"))
 
@@ -65,7 +65,68 @@ func UpdateOrder(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.BindJSON(&order)
+
+	// Clone for comparison
+	oldOrder := order
+
+	if err := c.BindJSON(&order); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Compare and Log
+	currentUser := util.CurrentUser(c)
+	var logs []models.OrderChangeLog
+	now := time.Now()
+
+	addLog := func(field, old, new string) {
+		logs = append(logs, models.OrderChangeLog{
+			OrderID:        uint(order.ID),
+			ChangeByUserID: uint(currentUser.ID),
+			ChangedAt:      now,
+			FieldName:      field,
+			OldValue:       old,
+			NewValue:       new,
+		})
+	}
+
+	if oldOrder.Status != order.Status {
+		addLog("status", oldOrder.Status, order.Status)
+	}
+	if oldOrder.Quantity != order.Quantity {
+		addLog("quantity", strconv.Itoa(oldOrder.Quantity), strconv.Itoa(order.Quantity))
+	}
+	if oldOrder.Item != order.Item {
+		addLog("item", oldOrder.Item, order.Item)
+	}
+	if oldOrder.UnitCost != order.UnitCost {
+		addLog("unitPrice", fmt.Sprintf("%f", oldOrder.UnitCost), fmt.Sprintf("%f", order.UnitCost))
+	}
+	if oldOrder.Notes != order.Notes {
+		addLog("notes", oldOrder.Notes, order.Notes)
+	}
+	if oldOrder.IsInternal != order.IsInternal {
+		addLog("isInternal", strconv.FormatBool(oldOrder.IsInternal), strconv.FormatBool(order.IsInternal))
+	}
+
+	// VendorID
+	oldVendor := ""
+	newVendor := ""
+	if oldOrder.VendorID != nil {
+		oldVendor = fmt.Sprintf("%d", *oldOrder.VendorID)
+	}
+	if order.VendorID != nil {
+		newVendor = fmt.Sprintf("%d", *order.VendorID)
+	}
+	if oldVendor != newVendor {
+		addLog("vendorId", oldVendor, newVendor)
+	}
+
+	// Save logs
+	if len(logs) > 0 {
+		db.Db.Create(&logs)
+	}
+
 	err = models.UpdateOrder(&order)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
