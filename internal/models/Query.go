@@ -10,7 +10,7 @@ import (
 
 type UserFilterParams struct {
 	Search    *string  `form:"search"`
-	Role      *string  `form:"role"`
+	Roles     *string  `form:"roles"`
 	EntityID  *string  `form:"entityId"`
 	HasRole   *string  `form:"hasRole"`
 	ID        *uint    `form:"id"`
@@ -79,8 +79,8 @@ func QueryUsers(filters UserFilterParams) (PaginatedResponse[User], error) {
 		query = query.Where("name = ?", *filters.Name)
 	}
 
-	if filters.Role != nil {
-		query = query.Where("roles LIKE ?", "%"+*filters.Role+"%")
+	if filters.Roles != nil {
+		query = query.Where("roles LIKE ?", "%"+*filters.Roles+"%")
 	}
 	if filters.HasRole != nil {
 		query = query.Where("roles LIKE ?", "%"+*filters.HasRole+"%")

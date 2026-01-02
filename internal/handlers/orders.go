@@ -67,17 +67,12 @@ func GetOrderNotificationRecipients(context *gin.Context) {
 	}
 
 	// Send to vendor admins if vendor exists
-
-	userIds := []uint{}
-	if order.Vendor != nil && order.Vendor.ContactID != nil {
-		userIds = append(userIds, *order.Vendor.ContactID)
-	}
-
-	var users []models.User
-	query := db.Db.Preload("Avatar").Model(&models.User{}).Where("id IN ?", userIds)
-	if err := query.Find(&users).Error; err != nil {
-		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	users := []models.User{}
+	if order.Vendor != nil {
+		vendorAdmins, _ := models.GetUsersByRole(fmt.Sprintf("vendor_admin:%d", order.Vendor.ID))
+		if vendorAdmins != nil {
+			users = append(users, *vendorAdmins...)
+		}
 	}
 
 	context.JSON(http.StatusOK, users)

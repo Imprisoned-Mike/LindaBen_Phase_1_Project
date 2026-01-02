@@ -62,6 +62,38 @@ func GetUserByEmail(email string) (User, error) {
 	return user, nil
 }
 
+func GetUsersByRole(role string) (*[]User, error) {
+	var pattern string = "%" + role + "%"
+	var users []User
+	err := db.Db.Preload("Avatar").Where("roles LIKE ?", pattern).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+
+	targetRole := ParseRoles(role)[0]
+	matchEntityId := strings.Contains(role, ":")
+
+	// Double check
+	var filteredUsers []User
+	for _, user := range users {
+		var parsedRoles = ParseRoles(user.Roles)
+		for _, r := range parsedRoles {
+			if r.Role == targetRole.Role {
+				if !matchEntityId {
+					filteredUsers = append(filteredUsers, user)
+					break
+				}
+				if r.EntityID != nil && targetRole.EntityID != nil && *r.EntityID == *targetRole.EntityID {
+					filteredUsers = append(filteredUsers, user)
+					break
+				}
+			}
+		}
+	}
+
+	return &filteredUsers, nil
+}
+
 // Validate user password
 func (user *User) ValidateUserPassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))

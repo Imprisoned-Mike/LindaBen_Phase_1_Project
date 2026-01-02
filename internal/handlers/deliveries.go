@@ -171,25 +171,24 @@ func GetDeliveryNotificationRecipients(context *gin.Context) {
 		return
 	}
 
-	userIds := []uint{}
+	users := []models.User{}
 
-	// school contact
-	if delivery.School != nil && delivery.School.ContactID != nil {
-		userIds = append(userIds, *delivery.School.ContactID)
+	// school admins
+	if delivery.School != nil {
+		schoolAdmins, _ := models.GetUsersByRole(fmt.Sprintf("school_admin:%d", delivery.School.ID))
+		if schoolAdmins != nil {
+			users = append(users, *schoolAdmins...)
+		}
 	}
 
 	// all orders' vendor contacts
 	for _, order := range delivery.Orders {
-		if order.Vendor != nil && order.Vendor.ContactID != nil {
-			userIds = append(userIds, *order.Vendor.ContactID)
+		if order.Vendor != nil {
+			vendorAdmins, _ := models.GetUsersByRole(fmt.Sprintf("vendor_admin:%d", order.Vendor.ID))
+			if vendorAdmins != nil {
+				users = append(users, *vendorAdmins...)
+			}
 		}
-	}
-
-	var users []models.User
-	query = db.Db.Preload("Avatar").Model(&models.User{}).Where("id IN ?", userIds)
-	if err := query.Find(&users).Error; err != nil {
-		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
 	}
 
 	context.JSON(http.StatusOK, users)
