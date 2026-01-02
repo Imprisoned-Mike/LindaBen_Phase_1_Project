@@ -6,6 +6,7 @@ import (
 	"LindaBen_Phase_1_Project/internal/util"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"slices"
 	"strconv"
@@ -191,7 +192,13 @@ func GetDeliveryNotificationRecipients(context *gin.Context) {
 		}
 	}
 
-	context.JSON(http.StatusOK, users)
+	// Dedup users
+	userMap := make(map[uint]models.User)
+	for _, user := range users {
+		userMap[user.ID] = user
+	}
+
+	context.JSON(http.StatusOK, maps.Values(userMap))
 }
 
 // update delivery
