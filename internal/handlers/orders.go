@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -67,22 +68,16 @@ func GetOrderNotificationRecipients(context *gin.Context) {
 		return
 	}
 
-	// Send to vendor admins if vendor exists
-	users := []models.User{}
+	userMap := make(map[uint]models.User)
 	if order.Vendor != nil {
-		vendorAdmins, _ := models.GetUsersByRole(fmt.Sprintf("vendor_admin:%d", order.Vendor.ID))
-		if vendorAdmins != nil {
-			users = append(users, *vendorAdmins...)
+		if vendorAdmins, _ := models.GetUsersByRole(fmt.Sprintf("vendor_admin:%d", order.Vendor.ID)); vendorAdmins != nil {
+			for _, user := range *vendorAdmins {
+				userMap[user.ID] = user
+			}
 		}
 	}
 
-	// Dedup users
-	userMap := make(map[uint]models.User)
-	for _, user := range users {
-		userMap[user.ID] = user
-	}
-
-	context.JSON(http.StatusOK, maps.Values(userMap))
+	context.JSON(http.StatusOK, slices.Collect(maps.Values(userMap)))
 }
 
 // update order

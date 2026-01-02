@@ -172,33 +172,29 @@ func GetDeliveryNotificationRecipients(context *gin.Context) {
 		return
 	}
 
-	users := []models.User{}
+	userMap := make(map[uint]models.User)
 
 	// school admins
 	if delivery.School != nil {
-		schoolAdmins, _ := models.GetUsersByRole(fmt.Sprintf("school_admin:%d", delivery.School.ID))
-		if schoolAdmins != nil {
-			users = append(users, *schoolAdmins...)
+		if schoolAdmins, _ := models.GetUsersByRole(fmt.Sprintf("school_admin:%d", delivery.School.ID)); schoolAdmins != nil {
+			for _, user := range *schoolAdmins {
+				userMap[user.ID] = user
+			}
 		}
 	}
 
 	// all orders' vendor contacts
 	for _, order := range delivery.Orders {
 		if order.Vendor != nil {
-			vendorAdmins, _ := models.GetUsersByRole(fmt.Sprintf("vendor_admin:%d", order.Vendor.ID))
-			if vendorAdmins != nil {
-				users = append(users, *vendorAdmins...)
+			if vendorAdmins, _ := models.GetUsersByRole(fmt.Sprintf("vendor_admin:%d", order.Vendor.ID)); vendorAdmins != nil {
+				for _, user := range *vendorAdmins {
+					userMap[user.ID] = user
+				}
 			}
 		}
 	}
 
-	// Dedup users
-	userMap := make(map[uint]models.User)
-	for _, user := range users {
-		userMap[user.ID] = user
-	}
-
-	context.JSON(http.StatusOK, maps.Values(userMap))
+	context.JSON(http.StatusOK, slices.Collect(maps.Values(userMap)))
 }
 
 // update delivery
