@@ -25,6 +25,8 @@ func RegisterDeliveryRoutes(r *gin.RouterGroup) {
 	r.DELETE("/:id", DeleteDelivery)
 	r.POST("/:delivery_id/orders", AddOrderToDelivery)
 	r.DELETE("/:id/orders/:order_id", RemoveOrderFromDelivery)
+	r.POST("/:delivery_id/notify", util.JWTAuth("admin"), SendDeliveryNotifications)
+	r.GET("/:id/notify/recipients", util.JWTAuth("admin"), GetDeliveryNotificationRecipients)
 }
 
 // get all Deliveries
@@ -148,6 +150,49 @@ func GetDelivery(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, delivery)
+}
+
+func SendDeliveryNotifications(context *gin.Context) {
+	context.JSON(http.StatusCreated, gin.H{"message": "Notifications sent (mock)."})
+}
+
+func GetDeliveryNotificationRecipients(context *gin.Context) {
+	id, _ := strconv.Atoi(context.Param("id"))
+
+	var delivery models.Delivery
+	query := db.Db.Preload("School").Preload("Orders.Vendor").Model(&models.Delivery{})
+	// Get delivery by ID
+	if err := query.First(&delivery, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			context.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	userIds := []uint{}
+
+	// school contact
+	if delivery.School != nil && delivery.School.ContactID != nil {
+		userIds = append(userIds, *delivery.School.ContactID)
+	}
+
+	// all orders' vendor contacts
+	for _, order := range delivery.Orders {
+		if order.Vendor != nil && order.Vendor.ContactID != nil {
+			userIds = append(userIds, *order.Vendor.ContactID)
+		}
+	}
+
+	var users []models.User
+	query = db.Db.Preload("Avatar").Model(&models.User{}).Where("id IN ?", userIds)
+	if err := query.Find(&users).Error; err != nil {
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, users)
 }
 
 // update delivery

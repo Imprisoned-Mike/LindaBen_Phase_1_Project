@@ -68,6 +68,8 @@ func main() {
 	deliveries.GET("/:id/logs", handlers.GetDeliveryLogs)
 	order.GET("/:id/logs", handlers.GetOrderLogs)
 
+	r.Static("/api/uploads", os.Getenv("UPLOAD_PATH"))
+
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -86,12 +88,12 @@ func seedData() {
 		return
 	}
 
-	var users = []models.Users{{Name: os.Getenv("ADMIN_USERNAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), Roles: "admin"}}
+	var users = []models.User{{Name: os.Getenv("ADMIN_USERNAME"), Email: os.Getenv("ADMIN_EMAIL"), Password: os.Getenv("ADMIN_PASSWORD"), Roles: "admin"}}
 
 	for _, u := range users {
 		log.Printf("Seeding user: %s with email: %s and roles: %s", u.Name, u.Email, u.Roles)
 
-		var existingUser models.Users
+		var existingUser models.User
 		err := db.Db.Where("email = ?", u.Email).First(&existingUser).Error
 
 		if err == nil {
@@ -103,7 +105,7 @@ func seedData() {
 			db.Db.Save(&existingUser)
 		} else {
 			// Create new user
-			newUser := models.Users{
+			newUser := models.User{
 				Name:     u.Name,
 				Email:    u.Email,
 				Password: u.Password,
@@ -116,7 +118,7 @@ func seedData() {
 
 // run migration
 func loadDatabase() {
-	db.Db.AutoMigrate(&models.Users{})
+	db.Db.AutoMigrate(&models.User{})
 	db.Db.AutoMigrate(&models.School{})
 	db.Db.AutoMigrate(&models.Vendor{})
 	db.Db.AutoMigrate(&models.Delivery{})

@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Users struct {
+type User struct {
 	Model
 	Name     string `json:"name"`
 	Password string `json:"-"`
@@ -24,16 +24,16 @@ type Users struct {
 }
 
 // Save user details
-func (user *Users) Save() (*Users, error) {
+func (user *User) Save() (*User, error) {
 	err := db.Db.Create(&user).Error
 	if err != nil {
-		return &Users{}, err
+		return &User{}, err
 	}
 	return user, nil
 }
 
 // Generate encrypted password
-func (user *Users) BeforeSave(*gorm.DB) error {
+func (user *User) BeforeSave(*gorm.DB) error {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func (user *Users) BeforeSave(*gorm.DB) error {
 }
 
 // Get all users
-func GetUsers(Users *[]Users) (err error) {
+func GetUsers(Users *[]User) (err error) {
 	err = db.Db.Find(Users).Error
 	if err != nil {
 		return err
@@ -53,22 +53,22 @@ func GetUsers(Users *[]Users) (err error) {
 }
 
 // Get user by email
-func GetUserByEmail(email string) (Users, error) {
-	var user Users
+func GetUserByEmail(email string) (User, error) {
+	var user User
 	err := db.Db.Where("email=?", email).Find(&user).Error
 	if err != nil {
-		return Users{}, err
+		return User{}, err
 	}
 	return user, nil
 }
 
 // Validate user password
-func (user *Users) ValidateUserPassword(password string) error {
+func (user *User) ValidateUserPassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 }
 
 // Get user by id
-func GetUser(Users *Users, id int) (err error) {
+func GetUser(Users *User, id int) (err error) {
 	err = db.Db.Preload("Avatar").Where("id = ?", id).First(Users).Error
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func GetUser(Users *Users, id int) (err error) {
 }
 
 // Update user
-func UpdateUser(Users *Users) (err error) {
+func UpdateUser(Users *User) (err error) {
 	err = db.Db.Updates(Users).Error
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func UpdateUser(Users *Users) (err error) {
 }
 
 // Delete User
-func DeleteUser(user *Users) (err error) {
+func DeleteUser(user *User) (err error) {
 	err = db.Db.Delete(user).Error
 	if err != nil {
 		return err
@@ -95,7 +95,7 @@ func DeleteUser(user *Users) (err error) {
 }
 
 // Upload User Avatar
-func UploadUserAvatar(user *Users, file *File) (err error) {
+func UploadUserAvatar(user *User, file *File) (err error) {
 	user.Avatar = file
 	err = db.Db.Save(user).Error
 	if err != nil {

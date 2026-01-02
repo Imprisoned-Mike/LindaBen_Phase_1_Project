@@ -19,6 +19,7 @@ func RegisterOrderRoutes(r *gin.RouterGroup) {
 	r.GET("/:id", GetOrderByID)
 	r.PUT("/:id", UpdateOrder, util.JWTAuth("admin"))
 	r.DELETE("/:id", DeleteOrder, util.JWTAuth("admin"))
+	r.GET("/:id/notify/recipients", util.JWTAuth("admin"), GetOrderNotificationRecipients)
 }
 
 // get order by id
@@ -48,6 +49,38 @@ func GetOrderByID(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, order)
+}
+
+func GetOrderNotificationRecipients(context *gin.Context) {
+	id, _ := strconv.Atoi(context.Param("id"))
+	var order models.Order
+
+	err := db.Db.Preload("Vendor").First(&order, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			context.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	// Send to vendor admins if vendor exists
+
+	userIds := []uint{}
+	if order.Vendor != nil && order.Vendor.ContactID != nil {
+		userIds = append(userIds, *order.Vendor.ContactID)
+	}
+
+	var users []models.User
+	query := db.Db.Preload("Avatar").Model(&models.User{}).Where("id IN ?", userIds)
+	if err := query.Find(&users).Error; err != nil {
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, users)
 }
 
 // update order

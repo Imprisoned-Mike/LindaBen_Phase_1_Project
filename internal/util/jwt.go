@@ -18,7 +18,7 @@ import (
 var privateKey = []byte(os.Getenv("JWT_PRIVATE_KEY"))
 
 // generate JWT token
-func GenerateAccessToken(user models.Users) (string, error) {
+func GenerateAccessToken(user models.User) (string, error) {
 	claims := jwt.MapClaims{
 		"sub":   user.ID, // subject (standard claim)
 		"roles": user.Roles,
@@ -91,7 +91,7 @@ func ValidateRoleJWT(context *gin.Context, allowedRoles ...string) error {
 }
 
 // fetch user details from the token
-func CurrentUser(context *gin.Context) *models.Users {
+func CurrentUser(context *gin.Context) *models.User {
 	err := ValidateJWT(context)
 	if err != nil {
 		return nil
@@ -105,7 +105,7 @@ func CurrentUser(context *gin.Context) *models.Users {
 	}
 	userId := uint(userIdFloat)
 
-	var user models.Users
+	var user models.User
 	// models.GetUser expects an int, so we cast
 	err = models.GetUser(&user, int(userId))
 	if err != nil {

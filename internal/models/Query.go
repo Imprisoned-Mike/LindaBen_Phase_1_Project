@@ -60,9 +60,9 @@ type DeliveryFilterParams struct {
 	Expand        []string `form:"expand"`
 }
 
-func QueryUsers(filters UserFilterParams) (PaginatedResponse[Users], error) {
-	var users []Users
-	query := db.Db.Model(&Users{}).Preload("Avatar")
+func QueryUsers(filters UserFilterParams) (PaginatedResponse[User], error) {
+	var users []User
+	query := db.Db.Model(&User{}).Preload("Avatar")
 
 	// Filters
 	if filters.Search != nil && *filters.Search != "" {
@@ -92,7 +92,7 @@ func QueryUsers(filters UserFilterParams) (PaginatedResponse[Users], error) {
 	var total int64
 	query.Count(&total)
 	var totalUnfiltered int64
-	db.Db.Model(&Users{}).Count(&totalUnfiltered)
+	db.Db.Model(&User{}).Count(&totalUnfiltered)
 
 	// Pagination
 	page := 1
@@ -119,12 +119,12 @@ func QueryUsers(filters UserFilterParams) (PaginatedResponse[Users], error) {
 
 	// Execute
 	if err := query.Find(&users).Error; err != nil {
-		return PaginatedResponse[Users]{}, err
+		return PaginatedResponse[User]{}, err
 	}
 
 	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
 
-	response := PaginatedResponse[Users]{
+	response := PaginatedResponse[User]{
 		Data: users,
 		Meta: PaginationMeta{
 			Total:           int(total),
