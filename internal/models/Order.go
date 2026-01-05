@@ -15,7 +15,7 @@ type Order struct {
 	PackingTime  *time.Time `json:"packingTime"`
 	PurchaseTime *time.Time `json:"purchaseTime"`
 
-	DeliveryID uint     `json:"deliveryId"`
+	DeliveryID int      `json:"deliveryId"`
 	Delivery   Delivery `json:"delivery"`
 
 	VendorID *int    `json:"vendorId"`
