@@ -2,6 +2,8 @@ package models
 
 import (
 	"LindaBen_Phase_1_Project/internal/db"
+	"os"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -21,8 +23,19 @@ func (file *File) Save() (*File, error) {
 	return file, nil
 }
 
-// Hook that Generate URL for file
+func GetUrl(file *File) string {
+	baseUrl := os.Getenv("BASE_URL")
+	baseUrl = strings.TrimRight(baseUrl, "/")
+
+	return baseUrl + "/api/uploads/" + file.Path
+}
+
 func (file *File) AfterFind(tx *gorm.DB) (err error) {
-	file.Url = "/uploads/" + file.Path
+	file.Url = GetUrl(file)
+	return
+}
+
+func (file *File) AfterCreate(tx *gorm.DB) (err error) {
+	file.Url = GetUrl(file)
 	return
 }

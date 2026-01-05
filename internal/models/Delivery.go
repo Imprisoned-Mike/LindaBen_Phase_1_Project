@@ -19,7 +19,7 @@ type Delivery struct {
 	ScheduledAt *time.Time `json:"scheduledAt"`
 
 	// Belongs-to: School
-	SchoolID *int    `json:"schoolId"`
+	SchoolID *uint   `json:"schoolId"`
 	School   *School `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"school"`
 
 	Notes string `json:"notes"`

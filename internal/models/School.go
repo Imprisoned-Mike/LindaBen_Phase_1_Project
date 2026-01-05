@@ -10,8 +10,8 @@ type School struct {
 	Address    string     `json:"address"`
 	Coordinate Coordinate `gorm:"embedded" json:"coordinate"`
 
-	ContactID *uint  `json:"contactId"`
-	Contact   *Users `gorm:"foreignKey:ContactID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"contact"` //Belongs to User
+	ContactID *uint `json:"contactId"`
+	Contact   *User `gorm:"foreignKey:ContactID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"contact"` //Belongs to User
 }
 
 // Get all Schools

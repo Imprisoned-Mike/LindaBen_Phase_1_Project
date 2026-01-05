@@ -47,7 +47,7 @@ func CreateUser(context *gin.Context) {
 		return
 	}
 
-	user := models.Users{
+	user := models.User{
 		Name:     input.Name,
 		Email:    input.Email,
 		Phone:    input.Phone,
@@ -116,8 +116,8 @@ func GetUser(context *gin.Context) {
 		expand = e
 	}
 
-	var user models.Users
-	query := db.Db.Model(&models.Users{})
+	var user models.User
+	query := db.Db.Model(&models.User{})
 
 	// Preload avatar if requested
 	for _, field := range expand {
@@ -142,7 +142,7 @@ func GetUser(context *gin.Context) {
 // update user
 func UpdateUser(c *gin.Context) {
 	//var input models.Update
-	var user models.Users
+	var user models.User
 	id, _ := strconv.Atoi(c.Param("id"))
 
 	err := models.GetUser(&user, id)
@@ -165,7 +165,7 @@ func UpdateUser(c *gin.Context) {
 }
 
 func DeleteUser(c *gin.Context) {
-	var user models.Users
+	var user models.User
 	id, _ := strconv.Atoi(c.Param("id"))
 
 	err := models.GetUser(&user, id)
@@ -190,7 +190,7 @@ func DeleteUser(c *gin.Context) {
 func UploadUserAvatar(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	var user models.Users
+	var user models.User
 	err := models.GetUser(&user, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -224,13 +224,14 @@ func UploadUserAvatar(c *gin.Context) {
 }
 
 func CreateFileFromUpload(fileHeader *multipart.FileHeader) (*models.File, error) {
+	uploadPath := os.Getenv("UPLOAD_PATH")
 	// ensure uploads dir exists
-	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
+	if err := os.MkdirAll(uploadPath, os.ModePerm); err != nil {
 		return nil, err
 	}
 
 	filename := fmt.Sprintf("%d_%s", time.Now().Unix(), fileHeader.Filename)
-	path := filepath.Join("uploads", filename)
+	path := filepath.Join(uploadPath, filename)
 
 	src, err := fileHeader.Open()
 	if err != nil {
@@ -249,7 +250,7 @@ func CreateFileFromUpload(fileHeader *multipart.FileHeader) (*models.File, error
 	}
 
 	file := &models.File{
-		Path: path,
+		Path: filename,
 	}
 
 	return file.Save()

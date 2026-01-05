@@ -6,6 +6,7 @@ import (
 	"LindaBen_Phase_1_Project/internal/util"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"slices"
 	"strconv"
@@ -25,6 +26,8 @@ func RegisterDeliveryRoutes(r *gin.RouterGroup) {
 	r.DELETE("/:id", DeleteDelivery)
 	r.POST("/:delivery_id/orders", AddOrderToDelivery)
 	r.DELETE("/:id/orders/:order_id", RemoveOrderFromDelivery)
+	r.POST("/:delivery_id/notify", util.JWTAuth("admin"), SendDeliveryNotifications)
+	r.GET("/:id/notify/recipients", util.JWTAuth("admin"), GetDeliveryNotificationRecipients)
 }
 
 // get all Deliveries
@@ -148,6 +151,50 @@ func GetDelivery(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, delivery)
+}
+
+func SendDeliveryNotifications(context *gin.Context) {
+	context.JSON(http.StatusCreated, gin.H{"message": "Notifications sent (mock)."})
+}
+
+func GetDeliveryNotificationRecipients(context *gin.Context) {
+	id, _ := strconv.Atoi(context.Param("id"))
+
+	var delivery models.Delivery
+	query := db.Db.Preload("School").Preload("Orders.Vendor").Model(&models.Delivery{})
+	// Get delivery by ID
+	if err := query.First(&delivery, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			context.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	userMap := make(map[uint]models.User)
+
+	// school admins
+	if delivery.School != nil {
+		if schoolAdmins, _ := models.GetUsersByRole(fmt.Sprintf("school_admin:%d", delivery.School.ID)); schoolAdmins != nil {
+			for _, user := range *schoolAdmins {
+				userMap[user.ID] = user
+			}
+		}
+	}
+
+	// all orders' vendor contacts
+	for _, order := range delivery.Orders {
+		if order.Vendor != nil {
+			if vendorAdmins, _ := models.GetUsersByRole(fmt.Sprintf("vendor_admin:%d", order.Vendor.ID)); vendorAdmins != nil {
+				for _, user := range *vendorAdmins {
+					userMap[user.ID] = user
+				}
+			}
+		}
+	}
+
+	context.JSON(http.StatusOK, slices.Collect(maps.Values(userMap)))
 }
 
 // update delivery

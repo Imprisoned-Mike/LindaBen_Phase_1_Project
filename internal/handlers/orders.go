@@ -6,7 +6,9 @@ import (
 	"LindaBen_Phase_1_Project/internal/util"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -19,6 +21,7 @@ func RegisterOrderRoutes(r *gin.RouterGroup) {
 	r.GET("/:id", GetOrderByID)
 	r.PUT("/:id", UpdateOrder, util.JWTAuth("admin"))
 	r.DELETE("/:id", DeleteOrder, util.JWTAuth("admin"))
+	r.GET("/:id/notify/recipients", util.JWTAuth("admin"), GetOrderNotificationRecipients)
 }
 
 // get order by id
@@ -48,6 +51,33 @@ func GetOrderByID(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, order)
+}
+
+func GetOrderNotificationRecipients(context *gin.Context) {
+	id, _ := strconv.Atoi(context.Param("id"))
+	var order models.Order
+
+	err := db.Db.Preload("Vendor").First(&order, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			context.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	userMap := make(map[uint]models.User)
+	if order.Vendor != nil {
+		if vendorAdmins, _ := models.GetUsersByRole(fmt.Sprintf("vendor_admin:%d", order.Vendor.ID)); vendorAdmins != nil {
+			for _, user := range *vendorAdmins {
+				userMap[user.ID] = user
+			}
+		}
+	}
+
+	context.JSON(http.StatusOK, slices.Collect(maps.Values(userMap)))
 }
 
 // update order

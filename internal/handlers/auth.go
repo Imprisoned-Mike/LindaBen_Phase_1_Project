@@ -29,6 +29,11 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type LoginResponse struct {
+	Token string      `json:"token"`
+	User  models.User `json:"user"`
+}
+
 // User Login
 func UserLogin(context *gin.Context) {
 	var input LoginRequest
@@ -67,7 +72,7 @@ func UserLogin(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, models.LoginResponse{
+	context.JSON(http.StatusOK, LoginResponse{
 		Token: tokenString,
 		User:  user,
 	})
@@ -94,7 +99,7 @@ func ImpersonateUser(context *gin.Context) {
 		return
 	}
 
-	var user models.Users
+	var user models.User
 	err := models.GetUser(&user, input.UserID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -111,7 +116,7 @@ func ImpersonateUser(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, models.LoginResponse{
+	context.JSON(http.StatusOK, LoginResponse{
 		Token: tokenString,
 		User:  user,
 	})
