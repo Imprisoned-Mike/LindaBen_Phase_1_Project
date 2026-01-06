@@ -30,7 +30,7 @@ type Order struct {
 }
 
 // Get Order by ID
-func GetOrderByID(Order *Order, id uint) (err error) {
+func GetOrderByID(Order *Order, id int) (err error) {
 	err = db.Db.First(Order, id).Error
 	if err != nil {
 		return err

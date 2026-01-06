@@ -68,7 +68,7 @@ func GetOrderNotificationRecipients(context *gin.Context) {
 		return
 	}
 
-	userMap := make(map[uint]models.User)
+	userMap := make(map[int]models.User)
 	if order.Vendor != nil {
 		if vendorAdmins, _ := models.GetUsersByRole(fmt.Sprintf("vendor_admin:%d", order.Vendor.ID)); vendorAdmins != nil {
 			for _, user := range *vendorAdmins {
@@ -85,7 +85,7 @@ func UpdateOrder(c *gin.Context) {
 	var order models.Order
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	err := models.GetOrderByID(&order, uint(id))
+	err := models.GetOrderByID(&order, int(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.AbortWithStatus(http.StatusNotFound)
@@ -169,7 +169,7 @@ func DeleteOrder(c *gin.Context) {
 	var order models.Order
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	err := models.GetOrderByID(&order, uint(id))
+	err := models.GetOrderByID(&order, int(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.AbortWithStatus(http.StatusNotFound)

@@ -172,7 +172,7 @@ func GetDeliveryNotificationRecipients(context *gin.Context) {
 		return
 	}
 
-	userMap := make(map[uint]models.User)
+	userMap := make(map[int]models.User)
 
 	// school admins
 	if delivery.School != nil {
